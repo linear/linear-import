@@ -27,8 +27,8 @@ interface GithubImportAnswers {
       {
         type: 'input',
         name: 'repo',
-        message: 'From which repo do you want to import issues from',
-        default: 'facebook/react',
+        message:
+          'From which repo do you want to import issues from (e.g. "facebook/react")',
       },
     ]);
 
