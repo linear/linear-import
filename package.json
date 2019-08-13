@@ -1,0 +1,46 @@
+{
+  "name": "linear-github-import",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "module": "dist/linear-github-import.esm.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test",
+    "postinstall": "yarn build"
+  },
+  "peerDependencies": {},
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  },
+  "prettier": {
+    "printWidth": 80,
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.17",
+    "husky": "^3.0.3",
+    "prettier": "^1.18.2",
+    "pretty-quick": "^1.11.1",
+    "tsdx": "^0.7.2",
+    "tslib": "^1.10.0",
+    "typescript": "^3.5.3"
+  },
+  "dependencies": {
+    "@types/chalk": "^2.2.0",
+    "@types/inquirer": "^6.5.0",
+    "@types/node-fetch": "^2.5.0",
+    "chalk": "^2.4.2",
+    "inquirer": "^6.5.1",
+    "node-fetch": "^2.6.0"
+  }
+}
