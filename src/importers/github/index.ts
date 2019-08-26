@@ -91,3 +91,24 @@ export const githubImport = async (
 
   return issueData;
 };
+
+export const githubAnswers = [
+  {
+    type: 'input',
+    name: 'githubApiKey',
+    message:
+      'Input your personal GitHub access token (https://github.com/settings/tokens, select `repo` scope)',
+  },
+  {
+    type: 'input',
+    name: 'linearApiKey',
+    message:
+      'Input your Linear API key (https://linear.app/settings/developer-keys)',
+  },
+  {
+    type: 'input',
+    name: 'repo',
+    message:
+      'From which repo do you want to import issues from (e.g. "facebook/react")',
+  },
+];

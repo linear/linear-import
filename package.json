@@ -40,7 +40,9 @@
     "@types/inquirer": "^6.5.0",
     "@types/node-fetch": "^2.5.0",
     "chalk": "^2.4.2",
+    "csvtojson": "2.0.10",
     "inquirer": "^6.5.1",
+    "inquirer-file-path": "1.0.1",
     "node-fetch": "^2.6.0"
   }
 }

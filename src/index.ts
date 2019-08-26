@@ -1,39 +1,42 @@
-import { githubImport } from './importers/github';
+import { githubAnswers, githubImport } from './importers/github';
+import { jiraImport, jiraAnswers } from './importers/jira';
+import { getDescription, getLink, getProjectName, getTitle } from './utils';
+import {
+  GithubImportAnswers,
+  JiraImportAnswers,
+  ServiceAnswers,
+} from './types';
 import linearClient from './client';
 import * as inquirer from 'inquirer';
 import chalk from 'chalk';
 
-interface GithubImportAnswers {
-  githubApiKey: string;
-  linearApiKey: string;
-  repo: string;
-}
+inquirer.registerPrompt('filePath', require('inquirer-file-path'));
 
 (async () => {
   try {
-    const answers = await inquirer.prompt<GithubImportAnswers>([
+    const { service } = await inquirer.prompt<ServiceAnswers>([
       {
-        type: 'input',
-        name: 'githubApiKey',
-        message:
-          'Input your personal GitHub access token (https://github.com/settings/tokens, select `repo` scope)',
-      },
-      {
-        type: 'input',
-        name: 'linearApiKey',
-        message:
-          'Input your Linear API key (https://linear.app/settings/developer-keys)',
-      },
-      {
-        type: 'input',
-        name: 'repo',
-        message:
-          'From which repo do you want to import issues from (e.g. "facebook/react")',
+        type: 'list',
+        name: 'service',
+        choices: ['Jira', 'GitHub'],
       },
     ]);
 
-    const [owner, repo] = answers.repo.split('/');
-    const issues = await githubImport(answers.githubApiKey, owner, repo);
+    let issues, answers;
+
+    switch (service) {
+      case 'Jira':
+        answers = await inquirer.prompt<JiraImportAnswers>(jiraAnswers);
+        issues = await jiraImport(answers.jiraFilePath);
+        break;
+      case 'GitHub':
+        answers = await inquirer.prompt<GithubImportAnswers>(githubAnswers);
+        const [owner, repo] = answers.repo.split('/');
+        issues = await githubImport(answers.githubApiKey, owner, repo);
+        break;
+      default:
+        throw new Error('Invalid service type');
+    }
 
     if (issues) {
       const linear = linearClient(answers.linearApiKey);
@@ -53,11 +56,15 @@ interface GithubImportAnswers {
         }
       `,
         {
-          name: repo,
+          name: getProjectName(answers, issues, service),
         }
       );
 
       for (const issue of issues) {
+        const title = getTitle(issue, service);
+        const description = getDescription(issue, service);
+        const link = getLink(answers, issue, service);
+
         await linear(
           `
           mutation createIssuesTeam($teamId: String!, $title: String!, $description: String) {
@@ -68,15 +75,15 @@ interface GithubImportAnswers {
         `,
           {
             teamId: teamResponse.teamCreate.team.id,
-            title: issue.title,
-            description: `${issue.body}\n\n---\n\n[View original issue on GitHub](${issue.url})`,
+            title,
+            description: `${description}\n\n---\n\n[View original issue on ${service}](${link})`,
           }
         );
       }
       const teamKey = teamResponse.teamCreate.team.key;
       console.error(
         chalk.green(
-          `GitHub issues imported to your backlog: https://linear.app/team/${teamKey}/backlog`
+          `${service} issues imported to your backlog: https://linear.app/team/${teamKey}/backlog`
         )
       );
     }
