@@ -19,6 +19,7 @@ inquirer.registerPrompt('filePath', require('inquirer-file-path'));
         type: 'list',
         name: 'service',
         choices: ['Jira', 'GitHub'],
+        message: 'What issue tracking service are you importing from?',
       },
     ]);
 
