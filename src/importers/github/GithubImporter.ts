@@ -113,7 +113,7 @@ export class GithubImporter implements Importer {
         )) as any;
 
         // User didn't select repo scope
-        if (!data.repository) {
+        if (!data || !data.repository) {
           throw new Error(
             `Unable to find repo ${this.owner}/${this.repo}. Did you select \`repo\` scope for your GitHub token?`
           );
@@ -142,7 +142,7 @@ export class GithubImporter implements Importer {
     for (const issue of issueData) {
       importData.issues.push({
         title: issue.title,
-        description: `${issue.body}\n\n---\n\n[View original issue on GitHub](${issue.url})`,
+        description: `${issue.body}\n\n[View original issue on GitHub](${issue.url})`,
         url: issue.url,
         comments: issue.comments.nodes
           ? issue.comments.nodes
@@ -180,7 +180,7 @@ export class GithubImporter implements Importer {
       const labels = issue.labels.nodes
         ? issue.labels.nodes.map(label => ({
             id: label.id,
-            color: label.color,
+            color: `#${label.color}`,
             name: label.name,
             description: label.description,
           }))

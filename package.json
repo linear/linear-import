@@ -8,7 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "cli": "ts-node src/cli",
+    "cli": "ts-node --project cli-tsconfig.json src/cli",
     "start": "tsdx watch",
     "build": "tsdx build",
     "test": "tsdx test",

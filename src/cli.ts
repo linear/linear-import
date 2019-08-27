@@ -2,7 +2,7 @@ import * as inquirer from 'inquirer';
 import { ImportAnswers } from './types';
 import { githubImport } from './importers/github';
 import chalk from 'chalk';
-import { importIssues } from 'importIssues';
+import { importIssues } from './importIssues';
 
 (async () => {
   try {
@@ -34,13 +34,15 @@ import { importIssues } from 'importIssues';
     let importer;
     switch (importAnswers.service) {
       case 'github':
-        importer = await githubImport()
+        importer = await githubImport();
         break;
+      case 'github':
+        throw 'Jira not implemented yet.';
       default:
         console.log(chalk.red(`Invalid importer`));
-        return 
+        return;
     }
-    
+
     if (importer) {
       await importIssues(importAnswers.linearApiKey, importer);
     }
@@ -49,4 +51,3 @@ import { importIssues } from 'importIssues';
     console.error(e);
   }
 })();
-.
