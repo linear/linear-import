@@ -8,6 +8,7 @@
     "dist"
   ],
   "scripts": {
+    "cli": "ts-node --project cli-tsconfig.json src/cli",
     "start": "tsdx watch",
     "build": "tsdx build",
     "test": "tsdx test",
@@ -41,6 +42,7 @@
     "@types/node-fetch": "^2.5.0",
     "chalk": "^2.4.2",
     "inquirer": "^6.5.1",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "ts-node": "^8.3.0"
   }
 }
