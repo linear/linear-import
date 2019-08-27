@@ -1,6 +1,12 @@
 import { githubAnswers, githubImport } from './importers/github';
 import { jiraImport, jiraAnswers } from './importers/jira';
-import { getDescription, getLink, getProjectName, getTitle } from './utils';
+import {
+  getDescription,
+  getLink,
+  getPriority,
+  getProjectName,
+  getTitle,
+} from './utils';
 import {
   GithubImportAnswers,
   JiraImportAnswers,
@@ -62,22 +68,24 @@ inquirer.registerPrompt('filePath', require('inquirer-file-path'));
       );
 
       for (const issue of issues) {
-        const title = getTitle(issue, service);
         const description = getDescription(issue, service);
         const link = getLink(answers, issue, service);
+        const priority = getPriority(issue, service);
+        const title = getTitle(issue, service);
 
         await linear(
           `
-          mutation createIssuesTeam($teamId: String!, $title: String!, $description: String) {
-            issueCreate(input: { title: $title, description: $description, teamId: $teamId }) {
+          mutation createIssuesTeam($description: String, $priority: Float, $teamId: String!, $title: String!) {
+            issueCreate(input: { description: $description, priority: $priority, teamId: $teamId, title: $title }) {
               success
             }
           }
         `,
           {
+            description: `${description}\n\n---\n\n[View original issue on ${service}](${link})`,
+            priority,
             teamId: teamResponse.teamCreate.team.id,
             title,
-            description: `${description}\n\n---\n\n[View original issue on ${service}](${link})`,
           }
         );
       }

@@ -16,6 +16,7 @@ export interface JiraImportAnswers {
 export interface JiraIssueType {
   Description: string;
   'Issue key': string;
+  Priority: 'Highest' | 'High' | 'Medium' | 'Low' | 'Lowest';
   'Project key': string;
   Summary: string;
 }

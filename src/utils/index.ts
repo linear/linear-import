@@ -1,15 +1,17 @@
 import { JiraIssueType, JiraIssuesType, GitHubIssueType } from '../types';
+type IssueType = GitHubIssueType & JiraIssueType;
 type Service = 'GitHub' | 'Jira';
 
+// Jira Fields
+// -----------
 // Done ✅
-// - Summary -> title
-// - Description -> description
-
+// - Summary
+// - Description
+// - Priority
 // Todo 🚨
 // - Labels
 // - Assignees
 // - Creation date
-// - Priority
 // - Potentially comments in some form
 // - Epic -> Project
 // - Story points
@@ -29,10 +31,7 @@ export const getProjectName = (
   }
 };
 
-export const getTitle = (
-  issue: JiraIssueType & GitHubIssueType,
-  service: Service
-) => {
+export const getTitle = (issue: IssueType, service: Service) => {
   switch (service) {
     case 'GitHub':
       return issue.title;
@@ -43,10 +42,7 @@ export const getTitle = (
   }
 };
 
-export const getDescription = (
-  issue: JiraIssueType & GitHubIssueType,
-  service: Service
-) => {
+export const getDescription = (issue: IssueType, service: Service) => {
   switch (service) {
     case 'GitHub':
       return issue.body;
@@ -57,11 +53,7 @@ export const getDescription = (
   }
 };
 
-export const getLink = (
-  answers: any,
-  issue: JiraIssueType & GitHubIssueType,
-  service: Service
-) => {
+export const getLink = (answers: any, issue: IssueType, service: Service) => {
   switch (service) {
     case 'GitHub':
       return issue.url;
@@ -69,5 +61,21 @@ export const getLink = (
       return `https://${answers.jiraProjectName}.atlassian.net/browse/${issue['Issue key']}`;
     default:
       return null;
+  }
+};
+
+export const getPriority = (issue: IssueType, service: Service) => {
+  switch (service) {
+    case 'Jira':
+      const priorityMap = {
+        Highest: 1,
+        High: 2,
+        Medium: 3,
+        Low: 4,
+        Lowest: 0,
+      };
+      return priorityMap[issue.Priority] || 0;
+    default:
+      return 0;
   }
 };
