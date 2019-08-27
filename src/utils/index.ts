@@ -2,20 +2,6 @@ import { JiraIssueType, JiraIssuesType, GitHubIssueType } from '../types';
 type IssueType = GitHubIssueType & JiraIssueType;
 type Service = 'GitHub' | 'Jira';
 
-// Jira Fields
-// -----------
-// Done ✅
-// - Summary
-// - Description
-// - Priority
-// Todo 🚨
-// - Labels
-// - Assignees
-// - Creation date
-// - Potentially comments in some form
-// - Epic -> Project
-// - Story points
-
 export const getProjectName = (
   answers: any,
   issues: JiraIssuesType,
