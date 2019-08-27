@@ -1,13 +1,11 @@
-# linear-github-import
+# linear-import
 
-You'll need API keys for both GitHub and Linear:
-
-- [GitHub](https://github.com/settings/tokens) - Remember to add `repo` scope
-- [Linear](https://linear.app/settings/developer-keys)
-
-Then run the script:
+Run interactive importer:
 
 ```
-yarn build
-node dist
+yarn cli
 ```
+
+Supported importers:
+
+- GitHub
