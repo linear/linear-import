@@ -145,8 +145,20 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
 
     await linear(
       `
-          mutation createIssue($teamId: String!, $title: String!, $description: String, $labelIds: [String!]) {
-            issueCreate(input: { title: $title, description: $description, teamId: $teamId, labelIds: $labelIds }) {
+          mutation createIssue(
+              $teamId: String!,
+              $title: String!,
+              $description: String,
+              $priority: Float,
+              $labelIds: [String!]
+            ) {
+            issueCreate(input: {
+                                title: $title,
+                                description: $description,
+                                priority: $priority,
+                                teamId: $teamId,
+                                labelIds: $labelIds
+                              }) {
               success
             }
           }
@@ -155,6 +167,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
         teamId,
         title: issue.title,
         description,
+        priority: issue.priority,
         labelIds,
       }
     );

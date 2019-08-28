@@ -3,19 +3,18 @@ import * as inquirer from 'inquirer';
 import { Importer } from '../../types';
 
 const BASE_PATH = process.cwd();
-inquirer.registerPrompt('filePath', require('inquirer-file-path'));
 
 const JIRA_URL_REGEX = /^https?:\/\/(\S+).atlassian.net/;
 
 export const jiraCsvImport = async (): Promise<Importer> => {
   const answers = await inquirer.prompt<JiraImportAnswers>(questions);
-  const jiraImporter = new JiraCsvImporter(answers.jiraFilePath);
+  const orgSlug = answers.jiraUrlName.match(JIRA_URL_REGEX)![1];
+  const jiraImporter = new JiraCsvImporter(answers.jiraFilePath, orgSlug);
   return jiraImporter;
 };
 
 interface JiraImportAnswers {
   jiraFilePath: string;
-  jiraProjectName: string;
   jiraUrlName: string;
 }
 
@@ -25,11 +24,6 @@ const questions = [
     type: 'filePath',
     name: 'jiraFilePath',
     message: 'Select your exported CSV file of Jira issues',
-  },
-  {
-    type: 'input',
-    name: 'jiraProjectName',
-    message: 'Input the name of your Jira project: ',
   },
   {
     type: 'input',

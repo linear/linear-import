@@ -142,7 +142,7 @@ export class GithubImporter implements Importer {
     for (const issue of issueData) {
       importData.issues.push({
         title: issue.title,
-        description: `${issue.body}\n\n[View original issue on GitHub](${issue.url})`,
+        description: `${issue.body}\n\n[View original issue in GitHub](${issue.url})`,
         url: issue.url,
         comments: issue.comments.nodes
           ? issue.comments.nodes

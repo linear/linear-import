@@ -5,6 +5,8 @@ import { githubImport } from './importers/github';
 import chalk from 'chalk';
 import { importIssues } from './importIssues';
 
+inquirer.registerPrompt('filePath', require('inquirer-file-path'));
+
 (async () => {
   try {
     const importAnswers = await inquirer.prompt<ImportAnswers>([

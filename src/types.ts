@@ -4,6 +4,10 @@ export interface Issue {
   title: string;
   /** Description in markdown */
   description?: string;
+  /** Status */
+  status?: string;
+  /** Assigned user */
+  assigneeId?: string;
   /** Issue's priority from 0-4, with 0 being the most important. Undefined for non-prioritized. */
   priority?: number;
   /** Issue's comments */
@@ -39,7 +43,8 @@ export interface ImportResult {
   statuses?: {
     [id: string]: {
       name: string;
-      type: IssueStatus;
+      color?: string;
+      type?: IssueStatus;
     };
   };
   users: {

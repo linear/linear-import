@@ -24,9 +24,9 @@ interface JiraIssueType {
  * @param apiKey GitHub api key for authentication
  */
 export class JiraCsvImporter implements Importer {
-  public constructor(filePath: string) {
+  public constructor(filePath: string, orgSlug: string) {
     this.filePath = filePath;
-    // this.organizationName =
+    this.organizationName = orgSlug;
   }
 
   public get name() {
@@ -34,7 +34,7 @@ export class JiraCsvImporter implements Importer {
   }
 
   public get defaultTeamName() {
-    return 'Jira'; // TODO
+    return 'Jira';
   }
 
   public import = async (): Promise<ImportResult> => {
@@ -44,84 +44,66 @@ export class JiraCsvImporter implements Importer {
       issues: [],
       labels: {},
       users: {},
+      statuses: {},
     };
 
     const statuses = Array.from(new Set(data.map(row => row['Status'])));
-    statuses;
-    // TODO handle statuses
+    const assignees = Array.from(new Set(data.map(row => row['Assignee'])));
 
-    for (const row of data) {
-      // todo
-      const type = row['Issue Type'];
-      importData.issues.push({
-        title: row['Summary'],
-        description: j2m.to_markdown(row['Description']),
-        priority: mapPriority(row['Priority']),
-        url: this.organizationName
-          ? `https://${this.organizationName}.atlassian.net/browse/${row['Issue key']}`
-          : undefined,
-        labels: [type],
-      });
-
-      if (!importData.labels[type]) {
-        importData.labels[type] = {
-          name: type,
-          // add color?
-        };
-      }
+    for (const user of assignees) {
+      importData.users[user] = {
+        name: user,
+      };
+    }
+    for (const status of statuses) {
+      importData.statuses![status] = {
+        name: status,
+      };
     }
 
-    // for (const issue of issueData) {
-    //   importData.issues.push({
-    //     title: issue.title,
-    //     description: `${issue.body}\n\n[View original issue on GitHub](${issue.url})`,
-    //     url: issue.url,
-    //     comments: issue.comments.nodes
-    //       ? issue.comments.nodes
-    //           .filter(comment => comment.author.id)
-    //           .map(comment => ({
-    //             body: comment.body,
-    //             userId: comment.author.id as string,
-    //             createdAt: new Date(comment.createdAt),
-    //           }))
-    //       : [],
-    //     labels: issue.labels.nodes
-    //       ? issue.labels.nodes.map(label => label.id)
-    //       : [],
-    //     createdAt: new Date(issue.createdAt),
-    //   });
+    for (const row of data) {
+      const url = this.organizationName
+        ? `https://${this.organizationName}.atlassian.net/browse/${row['Issue key']}`
+        : undefined;
+      const mdDesc = j2m.to_markdown(row['Description']);
+      const description = url
+        ? `${mdDesc}\n\n[View original issue in Jira](${url})`
+        : mdDesc;
+      const priority = mapPriority(row['Priority']);
+      const type = `Type: ${row['Issue Type']}`;
+      const release =
+        row['Release'] && row['Release'].length > 0
+          ? `Release: ${row['Release']}`
+          : undefined;
+      const assigneeId =
+        row['Assignee'] && row['Assignee'].length > 0
+          ? row['Assignee']
+          : undefined;
+      const status = row['Status'];
 
-    //   const users = issue.comments.nodes
-    //     ? issue.comments.nodes.map(comment => ({
-    //         id: comment.author.id,
-    //         name: comment.author.login,
-    //         avatarUrl: comment.author.avatarUrl,
-    //         email: comment.author.email,
-    //       }))
-    //     : [];
-    //   for (const user of users) {
-    //     const { id, email, ...userData } = user;
-    //     if (id) {
-    //       importData.users[id] = {
-    //         ...userData,
-    //         email: email && email.length > 0 ? email : undefined,
-    //       };
-    //     }
-    //   }
+      const labels = [type];
+      if (release) {
+        labels.push(release);
+      }
 
-    //   const labels = issue.labels.nodes
-    //     ? issue.labels.nodes.map(label => ({
-    //         id: label.id,
-    //         color: `#${label.color}`,
-    //         name: label.name,
-    //         description: label.description,
-    //       }))
-    //     : [];
-    //   for (const label of labels) {
-    //     const { id, ...labelData } = label;
-    //     importData.labels[id] = labelData;
-    //   }
-    // }
+      importData.issues.push({
+        title: row['Summary'],
+        description,
+        status,
+        priority,
+        url,
+        assigneeId,
+        labels,
+      });
+
+      for (const lab of labels) {
+        if (!importData.labels[lab]) {
+          importData.labels[lab] = {
+            name: lab,
+          };
+        }
+      }
+    }
 
     return importData;
   };
