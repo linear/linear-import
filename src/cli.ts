@@ -10,8 +10,7 @@ import { importIssues } from './importIssues';
       {
         type: 'input',
         name: 'linearApiKey',
-        message:
-          'Input your Linear API key (https://linear.app/settings/developer-keys)',
+        message: 'Input your Linear API key (https://linear.app/settings/api)',
       },
       {
         type: 'list',
@@ -36,7 +35,7 @@ import { importIssues } from './importIssues';
       case 'github':
         importer = await githubImport();
         break;
-      case 'github':
+      case 'jiraCsv':
         throw 'Jira not implemented yet.';
       default:
         console.log(chalk.red(`Invalid importer`));
