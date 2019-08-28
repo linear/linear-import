@@ -1,3 +1,4 @@
+import { jiraCsvImport } from './importers/jiraCsv/index';
 import * as inquirer from 'inquirer';
 import { ImportAnswers } from './types';
 import { githubImport } from './importers/github';
@@ -36,7 +37,8 @@ import { importIssues } from './importIssues';
         importer = await githubImport();
         break;
       case 'jiraCsv':
-        throw 'Jira not implemented yet.';
+        importer = await jiraCsvImport();
+        break;
       default:
         console.log(chalk.red(`Invalid importer`));
         return;

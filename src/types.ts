@@ -26,9 +26,22 @@ export interface Comment {
   createdAt?: Date;
 }
 
+export type IssueStatus =
+  | 'backlog'
+  | 'unstarted'
+  | 'started'
+  | 'completed'
+  | 'canceled';
+
 /** Import response. */
 export interface ImportResult {
   issues: Issue[];
+  statuses?: {
+    [id: string]: {
+      name: string;
+      type: IssueStatus;
+    };
+  };
   users: {
     [id: string]: {
       name: string;
