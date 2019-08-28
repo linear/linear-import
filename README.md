@@ -18,7 +18,6 @@ Supported fields:
 
 - Title
 - Description
-- Created at
 - Labels
 - (Optional) Comments
 
@@ -31,7 +30,11 @@ Following fields are supported:
 - `Summary` - Issue title
 - `Description` - Converted into markdown and used as issue description
 - `Priority` - Issue priority
-- `Status` - Converted into Linear's open status
 - `Issue Type` - Added as a label
-- (Optional) `Assignee` - You can map an assignee as a Linear user
 - (Optional) `Release` - Added as a label
+
+## Todo
+
+- [ ] Automatic image uploads
+- [ ] Assignees (pick from a list)
+- [ ] Created at (requires API change)
