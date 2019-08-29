@@ -19,6 +19,11 @@ export interface GraphQLRequestContext {
   variables?: Variables;
 }
 
+export type GraphQLClientRequest = <T extends any>(
+  query: string,
+  variables?: Variables | undefined
+) => Promise<T>;
+
 export class ClientError extends Error {
   response: GraphQLResponse;
   request: GraphQLRequestContext;
