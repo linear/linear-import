@@ -1,4 +1,4 @@
-import { Variables, ClientError } from './types';
+import { Variables, ClientError, GraphQLClientRequest } from './types';
 import fetch from 'node-fetch';
 
 interface ClientOptions {
@@ -72,7 +72,10 @@ export class GraphQLClient {
  * `, { ...attrs });
  * ```
  */
-export default (apiKey: string, options?: ClientOptions) => {
+export default (
+  apiKey: string,
+  options?: ClientOptions
+): GraphQLClientRequest => {
   const client = new GraphQLClient(apiKey, options);
   return client.request;
 };

@@ -1,4 +1,6 @@
-import { Importer, Issue, ImportResult } from './types';
+import { GraphQLClientRequest } from './client/types';
+import { replaceImagesInMarkdown } from './utils/replaceImages';
+import { Importer, ImportResult, Comment } from './types';
 import linearClient from './client';
 import chalk from 'chalk';
 import * as inquirer from 'inquirer';
@@ -136,9 +138,19 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
 
   // Create issues
   for (const issue of importData.issues) {
-    const description = importAnswers.includeComments
-      ? buildComments(issue, importData)
-      : issue.description;
+    const issueDescription = issue.description
+      ? await replaceImagesInMarkdown(linear, issue.description)
+      : undefined;
+
+    const description =
+      importAnswers.includeComments && issue.comments
+        ? await buildComments(
+            linear,
+            issueDescription || '',
+            issue.comments,
+            importData
+          )
+        : issueDescription;
     const labelIds = issue.labels
       ? issue.labels.map(labelId => labelMapping[labelId])
       : undefined;
@@ -149,7 +161,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
               $teamId: String!,
               $title: String!,
               $description: String,
-              $priority: Float,
+              $priority: Int,
               $labelIds: [String!]
             ) {
             issueCreate(input: {
@@ -181,17 +193,21 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
 };
 
 // Build comments into issue description
-const buildComments = (issue: Issue, importData: ImportResult) => {
-  if (!issue.comments) {
-    return;
-  }
-
-  const comments = issue.comments.map(comment => {
+const buildComments = async (
+  client: GraphQLClientRequest,
+  description: string,
+  comments: Comment[],
+  importData: ImportResult
+) => {
+  const newComments: string[] = [];
+  for (const comment of comments) {
     const user = importData.users[comment.userId];
     const date = comment.createdAt
       ? comment.createdAt.toISOString().split('T')[0]
       : undefined;
-    return `**${user.name}**${' ' + date}\n\n${comment.body}\n\n\n`;
-  });
-  return `${issue.description}\n\n---\n\n${comments}`;
+
+    const body = await replaceImagesInMarkdown(client, comment.body || '');
+    newComments.push(`**${user.name}**${' ' + date}\n\n${body}\n`);
+  }
+  return `${description}\n\n---\n\n${newComments.join('\n\n')}`;
 };
