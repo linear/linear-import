@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "cli": "ts-node --project cli-tsconfig.json src/cli",
+    "cli-debug": "TS_NODE_PROJECT=cli-tsconfig.json node --inspect=9500 -r ts-node/register src/cli",
     "start": "tsdx watch",
     "build": "tsdx build",
     "test": "tsdx test",
