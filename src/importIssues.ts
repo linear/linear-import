@@ -9,11 +9,17 @@ interface ImportAnswers {
   newTeam: boolean;
   teamName?: string;
   targetTeamId?: string;
+  includeProject?: string;
+  targetProjectId?: boolean;
   includeComments?: boolean;
 }
 
 interface TeamsResponse {
   teams: { id: string; name: string; key: string }[];
+}
+
+interface TeamProjectsResponse {
+  team: { projects: { id: string; name: string; key: string }[] };
 }
 
 interface LabelCreateResponse {
@@ -72,6 +78,36 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
     },
     {
       type: 'confirm',
+      name: 'includeProject',
+      message: 'Do you want to import to a specific project?',
+      when: answers => {
+        return !answers.newTeam;
+      },
+    },
+    {
+      type: 'list',
+      name: 'targetProjectId',
+      message: 'Import into project:',
+      choices: async answers => {
+        const projects = ((await linear(`query {
+          team(id: "${answers.targetTeamId}") {
+            projects {
+              id
+              name
+            }
+          }
+        }`)) as TeamProjectsResponse).team.projects;
+        return projects.map((project: { id: string; name: string }) => ({
+          name: project.name,
+          value: project.id,
+        }));
+      },
+      when: answers => {
+        return answers.includeProject;
+      },
+    },
+    {
+      type: 'confirm',
       name: 'includeComments',
       message: 'Do you want to include comments in the issue description?',
       when: () => {
@@ -109,6 +145,8 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
     teamKey = teams.find(team => team.id === importAnswers.targetTeamId)!.key;
     teamId = importAnswers.targetTeamId as string;
   }
+
+  const projectId = importAnswers.targetProjectId;
 
   // Create labels and mapping to source data
   const labelMapping = {} as { [id: string]: string };
@@ -159,6 +197,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       `
           mutation createIssue(
               $teamId: String!,
+              $projectId: String,
               $title: String!,
               $description: String,
               $priority: Int,
@@ -169,6 +208,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
                                 description: $description,
                                 priority: $priority,
                                 teamId: $teamId,
+                                projectId: $projectId,
                                 labelIds: $labelIds
                               }) {
               success
@@ -177,6 +217,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
         `,
       {
         teamId,
+        projectId,
         title: issue.title,
         description,
         priority: issue.priority,
