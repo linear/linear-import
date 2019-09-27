@@ -141,14 +141,15 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
   }
 
   const teamInfo = (await linear(`query {
-    team(id: "${teamId}")
-    issueLabels {
-      id
-      name
-    }
-    states {
-      id
-      name
+    team(id: "${teamId}") {
+      issueLabels {
+        id
+        name
+      }
+      states {
+        id
+        name
+      }
     }
   }`)) as TeamInfoResponse;
 
@@ -157,8 +158,9 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
 
   const existingLabelMap = {} as { [name: string]: string };
   for (const label of issueLabels) {
-    if (!existingLabelMap[label.name]) {
-      existingLabelMap[label.name] = label.id;
+    const labelName = label.name.toLowerCase();
+    if (!existingLabelMap[labelName]) {
+      existingLabelMap[labelName] = label.id;
     }
   }
 
@@ -195,15 +197,17 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
 
   const existingStateMap = {} as { [name: string]: string };
   for (const state of workflowStates) {
-    if (!existingStateMap[state.name]) {
-      existingStateMap[state.name] = state.id;
+    const stateName = state.name.toLowerCase();
+    if (!existingStateMap[stateName]) {
+      existingStateMap[stateName] = state.id;
     }
   }
 
   const existingUserMap = {} as { [name: string]: string };
   for (const user of users) {
-    if (!existingUserMap[user.name]) {
-      existingUserMap[user.name] = user.id;
+    const userName = user.name.toLowerCase();
+    if (!existingUserMap[userName]) {
+      existingUserMap[userName] = user.id;
     }
   }
 
@@ -224,13 +228,15 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
         : issueDescription;
 
     const labelIds = issue.labels
-      ? issue.labels.map(labelId => labelMapping[labelId])
+      ? issue.labels.map(labelId => labelMapping[labelId.toLowerCase()])
       : undefined;
 
-    const stateId = !!issue.status ? existingStateMap[issue.status] : undefined;
+    const stateId = !!issue.status
+      ? existingStateMap[issue.status.toLowerCase()]
+      : undefined;
 
     const assigneeId = !!issue.assigneeId
-      ? existingUserMap[issue.assigneeId]
+      ? existingUserMap[issue.assigneeId.toLowerCase()]
       : undefined;
 
     await linear(
