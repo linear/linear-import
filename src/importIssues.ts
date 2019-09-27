@@ -53,7 +53,6 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
   const linear = linearClient(apiKey);
   const importData = await importer.import();
 
-  // Query for all the needed information later on
   const queryInfo = (await linear(`query {
     teams {
       id
