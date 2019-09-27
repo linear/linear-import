@@ -22,7 +22,7 @@ interface AsanaIssueType {
 }
 
 /**
- * Import issues from a Asana CSV export.
+ * Import issues from an Asana CSV export.
  *
  * @param filePath  path to csv file
  * @param orgSlug   base Asana project url

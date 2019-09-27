@@ -18,18 +18,23 @@ interface QueryResponse {
     name: string;
     key: string;
   }[];
-  issueLabels: {
-    id: string;
-    name: string;
-  }[];
-  workflowStates: {
-    id: string;
-    name: string;
-  }[];
   users: {
     id: string;
     name: string;
   }[];
+}
+
+interface TeamInfoResponse {
+  team: {
+    issueLabels: {
+      id: string;
+      name: string;
+    }[];
+    states: {
+      id: string;
+      name: string;
+    }[];
+  };
 }
 
 interface LabelCreateResponse {
@@ -55,14 +60,6 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       name
       key
     }
-    issueLabels {
-      id
-      name
-    }
-    workflowStates {
-      id
-      name
-    }
     users {
       id
       name
@@ -70,8 +67,6 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
   }`)) as QueryResponse;
 
   const teams = queryInfo.teams;
-  const issueLabels = queryInfo.issueLabels;
-  const workflowStates = queryInfo.workflowStates;
   const users = queryInfo.users;
 
   // Prompt the user to either get or create a team
@@ -144,6 +139,21 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
     teamKey = teams.find(team => team.id === importAnswers.targetTeamId)!.key;
     teamId = importAnswers.targetTeamId as string;
   }
+
+  const teamInfo = (await linear(`query {
+    team(id: "${teamId}")
+    issueLabels {
+      id
+      name
+    }
+    states {
+      id
+      name
+    }
+  }`)) as TeamInfoResponse;
+
+  const issueLabels = teamInfo.team.issueLabels;
+  const workflowStates = teamInfo.team.states;
 
   const existingLabelMap = {} as { [name: string]: string };
   for (const label of issueLabels) {
