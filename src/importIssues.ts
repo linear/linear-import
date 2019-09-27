@@ -12,8 +12,24 @@ interface ImportAnswers {
   includeComments?: boolean;
 }
 
-interface TeamsResponse {
-  teams: { id: string; name: string; key: string }[];
+interface QueryResponse {
+  teams: {
+    id: string;
+    name: string;
+    key: string;
+  }[];
+  issueLabels: {
+    id: string;
+    name: string;
+  }[];
+  workflowStates: {
+    id: string;
+    name: string;
+  }[];
+  users: {
+    id: string;
+    name: string;
+  }[];
 }
 
 interface LabelCreateResponse {
@@ -32,14 +48,33 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
   const linear = linearClient(apiKey);
   const importData = await importer.import();
 
-  const teams = ((await linear(`query {
+  // Query for all the needed information later on
+  const queryInfo = (await linear(`query {
     teams {
       id
       name
       key
     }
-  }`)) as TeamsResponse).teams;
+    issueLabels {
+      id
+      name
+    }
+    workflowStates {
+      id
+      name
+    }
+    users {
+      id
+      name
+    }
+  }`)) as QueryResponse;
 
+  const teams = queryInfo.teams;
+  const issueLabels = queryInfo.issueLabels;
+  const workflowStates = queryInfo.workflowStates;
+  const users = queryInfo.users;
+
+  // Prompt the user to either get or create a team
   const importAnswers = await inquirer.prompt<ImportAnswers>([
     {
       type: 'confirm',
@@ -110,30 +145,56 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
     teamId = importAnswers.targetTeamId as string;
   }
 
+  const existingLabelMap = {} as { [name: string]: string };
+  for (const label of issueLabels) {
+    if (!existingLabelMap[label.name]) {
+      existingLabelMap[label.name] = label.id;
+    }
+  }
+
   // Create labels and mapping to source data
   const labelMapping = {} as { [id: string]: string };
   for (const labelId of Object.keys(importData.labels)) {
     const label = importData.labels[labelId];
-    const labelResponse = (await linear(
-      `
-        mutation createLabel($teamId: String!, $name: String!, $description: String, $color: String) {
-          issueLabelCreate(input: { name: $name, description: $description, color: $color, teamId: $teamId }) {
-            issueLabel {
-              id
-            }
-            success
-          }
-        }
-      `,
-      {
-        name: label.name,
-        description: label.description,
-        color: label.color,
-        teamId,
-      }
-    )) as LabelCreateResponse;
+    let actualLabelId = existingLabelMap[label.name];
 
-    labelMapping[labelId] = labelResponse.issueLabelCreate.issueLabel.id;
+    if (!actualLabelId) {
+      const labelResponse = (await linear(
+        `
+          mutation createLabel($teamId: String!, $name: String!, $description: String, $color: String) {
+            issueLabelCreate(input: { name: $name, description: $description, color: $color, teamId: $teamId }) {
+              issueLabel {
+                id
+              }
+              success
+            }
+          }
+        `,
+        {
+          name: label.name,
+          description: label.description,
+          color: label.color,
+          teamId,
+        }
+      )) as LabelCreateResponse;
+
+      actualLabelId = labelResponse.issueLabelCreate.issueLabel.id;
+    }
+    labelMapping[labelId] = actualLabelId;
+  }
+
+  const existingStateMap = {} as { [name: string]: string };
+  for (const state of workflowStates) {
+    if (!existingStateMap[state.name]) {
+      existingStateMap[state.name] = state.id;
+    }
+  }
+
+  const existingUserMap = {} as { [name: string]: string };
+  for (const user of users) {
+    if (!existingUserMap[user.name]) {
+      existingUserMap[user.name] = user.id;
+    }
   }
 
   // Create issues
@@ -151,8 +212,15 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
             importData
           )
         : issueDescription;
+
     const labelIds = issue.labels
       ? issue.labels.map(labelId => labelMapping[labelId])
+      : undefined;
+
+    const stateId = !!issue.status ? existingStateMap[issue.status] : undefined;
+
+    const assigneeId = !!issue.assigneeId
+      ? existingUserMap[issue.assigneeId]
       : undefined;
 
     await linear(
@@ -163,6 +231,8 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
               $description: String,
               $priority: Int,
               $labelIds: [String!]
+              $stateId: String
+              $assigneeId: String
             ) {
             issueCreate(input: {
                                 title: $title,
@@ -170,6 +240,8 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
                                 priority: $priority,
                                 teamId: $teamId,
                                 labelIds: $labelIds
+                                stateId: $stateId
+                                assigneeId: $assigneeId
                               }) {
               success
             }
@@ -181,6 +253,8 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
         description,
         priority: issue.priority,
         labelIds,
+        stateId,
+        assigneeId,
       }
     );
   }
