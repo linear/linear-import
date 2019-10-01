@@ -7,13 +7,23 @@ import * as inquirer from 'inquirer';
 
 interface ImportAnswers {
   newTeam: boolean;
+  selfAssign?: boolean;
   teamName?: string;
   targetTeamId?: string;
+  targetAssignee?: string;
   includeComments?: boolean;
 }
 
 interface TeamsResponse {
   teams: { id: string; name: string; key: string }[];
+}
+
+interface UsersResponse {
+  users: { id: string; name: string }[];
+}
+
+interface UserResponse {
+  user: { id: string; name: string };
 }
 
 interface LabelCreateResponse {
@@ -68,6 +78,33 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       },
       when: answers => {
         return !answers.newTeam;
+      },
+    },
+    {
+      type: 'confirm',
+      name: 'selfAssign',
+      message: 'Do you want to assign these issues to yourself?',
+      default: true,
+    },
+    {
+      type: 'list',
+      name: 'targetAssignee',
+      message: 'Assign to user:',
+      choices: async () => {
+        let users = ((await linear(`query {
+          users {
+            name
+            id
+          }
+        }`)) as UsersResponse).users;
+
+        return users.map((user: { id: string; name: string }) => ({
+          name: user.name,
+          value: user.id,
+        }));
+      },
+      when: answers => {
+        return !answers.selfAssign;
       },
     },
     {
@@ -136,6 +173,17 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
     labelMapping[labelId] = labelResponse.issueLabelCreate.issueLabel.id;
   }
 
+  let userId = importAnswers.targetAssignee || 'me';
+  let assignee = ((await linear(`query {
+      user(id: "${userId}") {
+        id
+        name
+      }
+    }`)) as UserResponse).user;
+
+  let assigneeId = assignee.id;
+  let assigneeName = assignee.name;
+
   // Create issues
   for (const issue of importData.issues) {
     const issueDescription = issue.description
@@ -159,6 +207,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       `
           mutation createIssue(
               $teamId: String!,
+              $assigneeId: String!,
               $title: String!,
               $description: String,
               $priority: Int,
@@ -166,6 +215,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
             ) {
             issueCreate(input: {
                                 title: $title,
+                                assigneeId: $assigneeId,
                                 description: $description,
                                 priority: $priority,
                                 teamId: $teamId,
@@ -177,6 +227,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
         `,
       {
         teamId,
+        assigneeId,
         title: issue.title,
         description,
         priority: issue.priority,
@@ -187,7 +238,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
 
   console.error(
     chalk.green(
-      `${importer.name} issues imported to your backlog: https://linear.app/team/${teamKey}/backlog`
+      `${importer.name} issues imported to your backlog: https://linear.app/team/${teamKey}/backlog and assigned to ${assigneeName}`
     )
   );
 };

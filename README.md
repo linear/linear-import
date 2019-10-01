@@ -35,6 +35,6 @@ Following fields are supported:
 
 ## Todo
 
-- [X] Automatic image uploads
-- [ ] Assignees (pick from a list)
+- [x] Automatic image uploads
+- [x] Assignees (pick from a list)
 - [ ] Created at (requires API change)
