@@ -33,8 +33,20 @@ Following fields are supported:
 - `Issue Type` - Added as a label
 - (Optional) `Release` - Added as a label
 
+### Asana CSV
+
+Asana projects can be imported into a Linear team from the CSV export file.
+
+Following fields are supported:
+
+- `Name` - Issue title
+- `Notes` - Converted into markdown and used as issue description
+- `Priority` - Issue priority
+- `Tags` - Added as a label
+- `Assignee` - Issue assignee
+
 ## Todo
 
-- [X] Automatic image uploads
+- [x] Automatic image uploads
 - [ ] Assignees (pick from a list)
 - [ ] Created at (requires API change)
