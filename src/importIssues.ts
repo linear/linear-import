@@ -112,10 +112,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
         }));
       },
       when: answers => {
-        if (!answers.includeProject || !answers.targetTeamId) return false;
-
-        const projects = getTeamProjects(answers.targetTeamId, teams);
-        return projects.length > 0;
+        return answers.includeProject;
       },
     },
     {
