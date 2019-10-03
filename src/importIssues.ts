@@ -1,5 +1,6 @@
 import { GraphQLClientRequest } from './client/types';
 import { replaceImagesInMarkdown } from './utils/replaceImages';
+import { getTeamProjects } from './utils/getTeamProjects';
 import { Importer, ImportResult, Comment } from './types';
 import linearClient from './client';
 import chalk from 'chalk';
@@ -9,12 +10,25 @@ interface ImportAnswers {
   newTeam: boolean;
   teamName?: string;
   targetTeamId?: string;
+  includeProject?: string;
+  targetProjectId?: boolean;
   includeComments?: boolean;
 }
 
 interface TeamsResponse {
-  teams: { id: string; name: string; key: string }[];
+  teams: {
+    id: string;
+    name: string;
+    key: string;
+    projects: {
+      id: string;
+      name: string;
+      key: string;
+    }[];
+  }[];
 }
+
+interface Team {}
 
 interface LabelCreateResponse {
   issueLabelCreate: {
@@ -37,6 +51,10 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       id
       name
       key
+      projects {
+        id
+        name
+      }
     }
   }`)) as TeamsResponse).teams;
 
@@ -68,6 +86,33 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       },
       when: answers => {
         return !answers.newTeam;
+      },
+    },
+    {
+      type: 'confirm',
+      name: 'includeProject',
+      message: 'Do you want to import to a specific project?',
+      when: answers => {
+        // if no team is selected then don't show projects screen
+        if (!answers.targetTeamId) return false;
+
+        const projects = getTeamProjects(answers.targetTeamId, teams);
+        return projects.length > 0;
+      },
+    },
+    {
+      type: 'list',
+      name: 'targetProjectId',
+      message: 'Import into project:',
+      choices: async answers => {
+        const projects = getTeamProjects(answers.targetTeamId as string, teams);
+        return projects.map((project: { id: string; name: string }) => ({
+          name: project.name,
+          value: project.id,
+        }));
+      },
+      when: answers => {
+        return answers.includeProject;
       },
     },
     {
@@ -109,6 +154,8 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
     teamKey = teams.find(team => team.id === importAnswers.targetTeamId)!.key;
     teamId = importAnswers.targetTeamId as string;
   }
+
+  const projectId = importAnswers.targetProjectId;
 
   // Create labels and mapping to source data
   const labelMapping = {} as { [id: string]: string };
@@ -159,6 +206,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       `
           mutation createIssue(
               $teamId: String!,
+              $projectId: String,
               $title: String!,
               $description: String,
               $priority: Int,
@@ -169,6 +217,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
                                 description: $description,
                                 priority: $priority,
                                 teamId: $teamId,
+                                projectId: $projectId,
                                 labelIds: $labelIds
                               }) {
               success
@@ -177,6 +226,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
         `,
       {
         teamId,
+        projectId,
         title: issue.title,
         description,
         priority: issue.priority,
