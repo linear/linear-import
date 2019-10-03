@@ -1,5 +1,6 @@
 import { GraphQLClientRequest } from './client/types';
 import { replaceImagesInMarkdown } from './utils/replaceImages';
+import { getTeamProjects } from './utils/getTeamProjects';
 import { Importer, ImportResult, Comment } from './types';
 import linearClient from './client';
 import chalk from 'chalk';
@@ -15,12 +16,19 @@ interface ImportAnswers {
 }
 
 interface TeamsResponse {
-  teams: { id: string; name: string; key: string }[];
+  teams: {
+    id: string;
+    name: string;
+    key: string;
+    projects: {
+      id: string;
+      name: string;
+      key: string;
+    }[];
+  }[];
 }
 
-interface TeamProjectsResponse {
-  team: { projects: { id: string; name: string; key: string }[] };
-}
+interface Team {}
 
 interface LabelCreateResponse {
   issueLabelCreate: {
@@ -43,6 +51,10 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       id
       name
       key
+      projects {
+        id
+        name
+      }
     }
   }`)) as TeamsResponse).teams;
 
@@ -81,7 +93,11 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       name: 'includeProject',
       message: 'Do you want to import to a specific project?',
       when: answers => {
-        return !answers.newTeam;
+        // if no team is selected then don't show projects screen
+        if (!answers.targetTeamId) return false;
+
+        const projects = getTeamProjects(answers.targetTeamId, teams);
+        return projects.length > 0;
       },
     },
     {
@@ -89,21 +105,17 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       name: 'targetProjectId',
       message: 'Import into project:',
       choices: async answers => {
-        const projects = ((await linear(`query {
-          team(id: "${answers.targetTeamId}") {
-            projects {
-              id
-              name
-            }
-          }
-        }`)) as TeamProjectsResponse).team.projects;
+        const projects = getTeamProjects(answers.targetTeamId as string, teams);
         return projects.map((project: { id: string; name: string }) => ({
           name: project.name,
           value: project.id,
         }));
       },
       when: answers => {
-        return answers.includeProject;
+        if (!answers.includeProject || !answers.targetTeamId) return false;
+
+        const projects = getTeamProjects(answers.targetTeamId, teams);
+        return projects.length > 0;
       },
     },
     {
