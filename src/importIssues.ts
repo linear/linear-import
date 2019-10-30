@@ -208,7 +208,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
   const labelMapping = {} as { [id: string]: string };
   for (const labelId of Object.keys(importData.labels)) {
     const label = importData.labels[labelId];
-    let actualLabelId = existingLabelMap[label.name];
+    let actualLabelId = existingLabelMap[label.name.toLowerCase()];
 
     if (!actualLabelId) {
       const labelResponse = (await linear(
@@ -268,7 +268,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
         : issueDescription;
 
     const labelIds = issue.labels
-      ? issue.labels.map(labelId => labelMapping[labelId.toLowerCase()])
+      ? issue.labels.map(labelId => labelMapping[labelId])
       : undefined;
 
     const stateId = !!issue.status
