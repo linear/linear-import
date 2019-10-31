@@ -1,9 +1,10 @@
-import { jiraCsvImport } from './importers/jiraCsv/index';
+import chalk from 'chalk';
 import * as inquirer from 'inquirer';
 import { ImportAnswers } from './types';
-import { githubImport } from './importers/github';
-import chalk from 'chalk';
 import { importIssues } from './importIssues';
+import { githubImport } from './importers/github';
+import { jiraCsvImport } from './importers/jiraCsv';
+import { asanaCsvImport } from './importers/asanaCsv';
 
 inquirer.registerPrompt('filePath', require('inquirer-file-path'));
 
@@ -28,6 +29,10 @@ inquirer.registerPrompt('filePath', require('inquirer-file-path'));
             name: 'Jira (CSV export)',
             value: 'jiraCsv',
           },
+          {
+            name: 'Asana (CSV export)',
+            value: 'asanaCsv',
+          },
         ],
       },
     ]);
@@ -40,6 +45,9 @@ inquirer.registerPrompt('filePath', require('inquirer-file-path'));
         break;
       case 'jiraCsv':
         importer = await jiraCsvImport();
+        break;
+      case 'asanaCsv':
+        importer = await asanaCsvImport();
         break;
       default:
         console.log(chalk.red(`Invalid importer`));

@@ -1,5 +1,6 @@
 import { GraphQLClientRequest } from './client/types';
 import { replaceImagesInMarkdown } from './utils/replaceImages';
+import { getTeamProjects } from './utils/getTeamProjects';
 import { Importer, ImportResult, Comment } from './types';
 import linearClient from './client';
 import chalk from 'chalk';
@@ -9,21 +10,41 @@ interface ImportAnswers {
   newTeam: boolean;
   selfAssign?: boolean;
   teamName?: string;
-  targetTeamId?: string;
-  targetAssignee?: string;
   includeComments?: boolean;
+  includeProject?: string;
+  targetAssignee?: string;
+  targetProjectId?: boolean;
+  targetTeamId?: string;
 }
 
-interface TeamsResponse {
-  teams: { id: string; name: string; key: string }[];
+interface QueryResponse {
+  teams: {
+    id: string;
+    name: string;
+    key: string;
+    projects: {
+      id: string;
+      name: string;
+      key: string;
+    }[];
+  }[];
+  users: {
+    id: string;
+    name: string;
+  }[];
 }
 
-interface UsersResponse {
-  users: { id: string; name: string }[];
-}
-
-interface UserResponse {
-  user: { id: string; name: string };
+interface TeamInfoResponse {
+  team: {
+    issueLabels: {
+      id: string;
+      name: string;
+    }[];
+    states: {
+      id: string;
+      name: string;
+    }[];
+  };
 }
 
 interface LabelCreateResponse {
@@ -35,6 +56,14 @@ interface LabelCreateResponse {
   };
 }
 
+interface UserResponse {
+  user: { id: string; name: string };
+}
+
+interface UsersResponse {
+  users: { id: string; name: string }[];
+}
+
 /**
  * Import issues into Linear via the API.
  */
@@ -42,14 +71,26 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
   const linear = linearClient(apiKey);
   const importData = await importer.import();
 
-  const teams = ((await linear(`query {
+  const queryInfo = (await linear(`query {
     teams {
       id
       name
       key
+      projects {
+        id
+        name
+      }
     }
-  }`)) as TeamsResponse).teams;
+    users {
+      id
+      name
+    }
+  }`)) as QueryResponse;
 
+  const teams = queryInfo.teams;
+  const users = queryInfo.users;
+
+  // Prompt the user to either get or create a team
   const importAnswers = await inquirer.prompt<ImportAnswers>([
     {
       type: 'confirm',
@@ -62,7 +103,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       name: 'teamName',
       message: 'Name of the team:',
       default: importer.defaultTeamName || importer.name,
-      when: answers => {
+      when: (answers: ImportAnswers) => {
         return answers.newTeam;
       },
     },
@@ -76,8 +117,45 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
           value: team.id,
         }));
       },
-      when: answers => {
+      when: (answers: ImportAnswers) => {
         return !answers.newTeam;
+      },
+    },
+    {
+      type: 'confirm',
+      name: 'includeProject',
+      message: 'Do you want to import to a specific project?',
+      when: (answers: ImportAnswers) => {
+        // if no team is selected then don't show projects screen
+        if (!answers.targetTeamId) return false;
+
+        const projects = getTeamProjects(answers.targetTeamId, teams);
+        return projects.length > 0;
+      },
+    },
+    {
+      type: 'list',
+      name: 'targetProjectId',
+      message: 'Import into project:',
+      choices: async (answers: ImportAnswers) => {
+        const projects = getTeamProjects(answers.targetTeamId as string, teams);
+        return projects.map((project: { id: string; name: string }) => ({
+          name: project.name,
+          value: project.id,
+        }));
+      },
+      when: (answers: ImportAnswers) => {
+        return answers.includeProject;
+      },
+    },
+    {
+      type: 'confirm',
+      name: 'includeComments',
+      message: 'Do you want to include comments in the issue description?',
+      when: () => {
+        return !!importData.issues.find(
+          issue => issue.comments && issue.comments.length > 0
+        );
       },
     },
     {
@@ -103,18 +181,8 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
           value: user.id,
         }));
       },
-      when: answers => {
+      when: (answers: ImportAnswers) => {
         return !answers.selfAssign;
-      },
-    },
-    {
-      type: 'confirm',
-      name: 'includeComments',
-      message: 'Do you want to include comments in the issue description?',
-      when: () => {
-        return !!importData.issues.find(
-          issue => issue.comments && issue.comments.length > 0
-        );
       },
     },
   ]);
@@ -147,42 +215,87 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
     teamId = importAnswers.targetTeamId as string;
   }
 
+  const teamInfo = (await linear(`query {
+    team(id: "${teamId}") {
+      issueLabels {
+        id
+        name
+      }
+      states {
+        id
+        name
+      }
+    }
+  }`)) as TeamInfoResponse;
+
+  const issueLabels = teamInfo.team.issueLabels;
+  const workflowStates = teamInfo.team.states;
+
+  const existingLabelMap = {} as { [name: string]: string };
+  for (const label of issueLabels) {
+    const labelName = label.name.toLowerCase();
+    if (!existingLabelMap[labelName]) {
+      existingLabelMap[labelName] = label.id;
+    }
+  }
+
+  let me;
+  if (importAnswers.selfAssign) {
+    me = ((await linear(`query {
+      user(id: "me") {
+        id
+      }
+    }`)) as UserResponse).user.id;
+  }
+
+  const projectId = importAnswers.targetProjectId;
+
   // Create labels and mapping to source data
   const labelMapping = {} as { [id: string]: string };
   for (const labelId of Object.keys(importData.labels)) {
     const label = importData.labels[labelId];
-    const labelResponse = (await linear(
-      `
-        mutation createLabel($teamId: String!, $name: String!, $description: String, $color: String) {
-          issueLabelCreate(input: { name: $name, description: $description, color: $color, teamId: $teamId }) {
-            issueLabel {
-              id
-            }
-            success
-          }
-        }
-      `,
-      {
-        name: label.name,
-        description: label.description,
-        color: label.color,
-        teamId,
-      }
-    )) as LabelCreateResponse;
+    let actualLabelId = existingLabelMap[label.name.toLowerCase()];
 
-    labelMapping[labelId] = labelResponse.issueLabelCreate.issueLabel.id;
+    if (!actualLabelId) {
+      const labelResponse = (await linear(
+        `
+          mutation createLabel($teamId: String!, $name: String!, $description: String, $color: String) {
+            issueLabelCreate(input: { name: $name, description: $description, color: $color, teamId: $teamId }) {
+              issueLabel {
+                id
+              }
+              success
+            }
+          }
+        `,
+        {
+          name: label.name,
+          description: label.description,
+          color: label.color,
+          teamId,
+        }
+      )) as LabelCreateResponse;
+
+      actualLabelId = labelResponse.issueLabelCreate.issueLabel.id;
+    }
+    labelMapping[labelId] = actualLabelId;
   }
 
-  let userId = importAnswers.targetAssignee || 'me';
-  let assignee = ((await linear(`query {
-      user(id: "${userId}") {
-        id
-        name
-      }
-    }`)) as UserResponse).user;
+  const existingStateMap = {} as { [name: string]: string };
+  for (const state of workflowStates) {
+    const stateName = state.name.toLowerCase();
+    if (!existingStateMap[stateName]) {
+      existingStateMap[stateName] = state.id;
+    }
+  }
 
-  let assigneeId = assignee.id;
-  let assigneeName = assignee.name;
+  const existingUserMap = {} as { [name: string]: string };
+  for (const user of users) {
+    const userName = user.name.toLowerCase();
+    if (!existingUserMap[userName]) {
+      existingUserMap[userName] = user.id;
+    }
+  }
 
   // Create issues
   for (const issue of importData.issues) {
@@ -199,27 +312,41 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
             importData
           )
         : issueDescription;
+
     const labelIds = issue.labels
       ? issue.labels.map(labelId => labelMapping[labelId])
       : undefined;
+
+    const stateId = !!issue.status
+      ? existingStateMap[issue.status.toLowerCase()]
+      : undefined;
+
+    const assigneeId =
+      !!issue.assigneeId && existingUserMap[issue.assigneeId.toLowerCase()]
+        ? existingUserMap[issue.assigneeId.toLowerCase()]
+        : importAnswers.targetAssignee || me;
 
     await linear(
       `
           mutation createIssue(
               $teamId: String!,
-              $assigneeId: String!,
+              $projectId: String,
               $title: String!,
               $description: String,
               $priority: Int,
               $labelIds: [String!]
+              $stateId: String
+              $assigneeId: String
             ) {
             issueCreate(input: {
+                                teamId: $teamId,
+                                projectId: $projectId,
                                 title: $title,
-                                assigneeId: $assigneeId,
                                 description: $description,
                                 priority: $priority,
-                                teamId: $teamId,
                                 labelIds: $labelIds
+                                stateId: $stateId
+                                assigneeId: $assigneeId
                               }) {
               success
             }
@@ -227,18 +354,20 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
         `,
       {
         teamId,
-        assigneeId,
+        projectId,
         title: issue.title,
         description,
         priority: issue.priority,
         labelIds,
+        stateId,
+        assigneeId,
       }
     );
   }
 
   console.error(
     chalk.green(
-      `${importer.name} issues imported to your backlog: https://linear.app/team/${teamKey}/backlog and assigned to ${assigneeName}`
+      `${importer.name} issues imported to your backlog: https://linear.app/team/${teamKey}/backlog`
     )
   );
 };
