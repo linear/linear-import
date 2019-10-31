@@ -8,13 +8,13 @@ import * as inquirer from 'inquirer';
 
 interface ImportAnswers {
   newTeam: boolean;
-  selfAssign?: boolean;
-  teamName?: string;
   includeComments?: boolean;
   includeProject?: string;
+  selfAssign?: boolean;
   targetAssignee?: string;
   targetProjectId?: boolean;
   targetTeamId?: string;
+  teamName?: string;
 }
 
 interface QueryResponse {
