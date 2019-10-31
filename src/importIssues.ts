@@ -32,6 +32,9 @@ interface QueryResponse {
     id: string;
     name: string;
   }[];
+  user: {
+    id: string;
+  };
 }
 
 interface TeamInfoResponse {
@@ -56,14 +59,6 @@ interface LabelCreateResponse {
   };
 }
 
-interface UserResponse {
-  user: { id: string; name: string };
-}
-
-interface UsersResponse {
-  users: { id: string; name: string }[];
-}
-
 /**
  * Import issues into Linear via the API.
  */
@@ -81,6 +76,9 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
         name
       }
     }
+    user(id: "me") {
+      id
+    }
     users {
       id
       name
@@ -89,6 +87,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
 
   const teams = queryInfo.teams;
   const users = queryInfo.users;
+  const me = queryInfo.user.id;
 
   // Prompt the user to either get or create a team
   const importAnswers = await inquirer.prompt<ImportAnswers>([
@@ -168,13 +167,8 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       type: 'list',
       name: 'targetAssignee',
       message: 'Assign to user:',
-      choices: async () => {
-        let users = ((await linear(`query {
-          users {
-            name
-            id
-          }
-        }`)) as UsersResponse).users;
+      choices: () => {
+        queryInfo.users;
 
         return users.map((user: { id: string; name: string }) => ({
           name: user.name,
@@ -237,15 +231,6 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
     if (!existingLabelMap[labelName]) {
       existingLabelMap[labelName] = label.id;
     }
-  }
-
-  let me;
-  if (importAnswers.selfAssign) {
-    me = ((await linear(`query {
-      user(id: "me") {
-        id
-      }
-    }`)) as UserResponse).user.id;
   }
 
   const projectId = importAnswers.targetProjectId;
@@ -321,7 +306,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       ? existingStateMap[issue.status.toLowerCase()]
       : undefined;
 
-    const assigneeId =
+    const assigneeId: string =
       !!issue.assigneeId && existingUserMap[issue.assigneeId.toLowerCase()]
         ? existingUserMap[issue.assigneeId.toLowerCase()]
         : importAnswers.targetAssignee || me;
