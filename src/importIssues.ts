@@ -8,11 +8,13 @@ import * as inquirer from 'inquirer';
 
 interface ImportAnswers {
   newTeam: boolean;
-  teamName?: string;
-  targetTeamId?: string;
-  includeProject?: string;
-  targetProjectId?: boolean;
   includeComments?: boolean;
+  includeProject?: string;
+  selfAssign?: boolean;
+  targetAssignee?: string;
+  targetProjectId?: boolean;
+  targetTeamId?: string;
+  teamName?: string;
 }
 
 interface QueryResponse {
@@ -30,6 +32,9 @@ interface QueryResponse {
     id: string;
     name: string;
   }[];
+  user: {
+    id: string;
+  };
 }
 
 interface TeamInfoResponse {
@@ -71,6 +76,9 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
         name
       }
     }
+    user(id: "me") {
+      id
+    }
     users {
       id
       name
@@ -79,6 +87,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
 
   const teams = queryInfo.teams;
   const users = queryInfo.users;
+  const me = queryInfo.user.id;
 
   // Prompt the user to either get or create a team
   const importAnswers = await inquirer.prompt<ImportAnswers>([
@@ -93,7 +102,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       name: 'teamName',
       message: 'Name of the team:',
       default: importer.defaultTeamName || importer.name,
-      when: answers => {
+      when: (answers: ImportAnswers) => {
         return answers.newTeam;
       },
     },
@@ -107,7 +116,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
           value: team.id,
         }));
       },
-      when: answers => {
+      when: (answers: ImportAnswers) => {
         return !answers.newTeam;
       },
     },
@@ -115,7 +124,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       type: 'confirm',
       name: 'includeProject',
       message: 'Do you want to import to a specific project?',
-      when: answers => {
+      when: (answers: ImportAnswers) => {
         // if no team is selected then don't show projects screen
         if (!answers.targetTeamId) return false;
 
@@ -127,14 +136,14 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       type: 'list',
       name: 'targetProjectId',
       message: 'Import into project:',
-      choices: async answers => {
+      choices: async (answers: ImportAnswers) => {
         const projects = getTeamProjects(answers.targetTeamId as string, teams);
         return projects.map((project: { id: string; name: string }) => ({
           name: project.name,
           value: project.id,
         }));
       },
-      when: answers => {
+      when: (answers: ImportAnswers) => {
         return answers.includeProject;
       },
     },
@@ -146,6 +155,28 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
         return !!importData.issues.find(
           issue => issue.comments && issue.comments.length > 0
         );
+      },
+    },
+    {
+      type: 'confirm',
+      name: 'selfAssign',
+      message: 'Do you want to assign these issues to yourself?',
+      default: true,
+    },
+    {
+      type: 'list',
+      name: 'targetAssignee',
+      message: 'Assign to user:',
+      choices: () => {
+        queryInfo.users;
+
+        return users.map((user: { id: string; name: string }) => ({
+          name: user.name,
+          value: user.id,
+        }));
+      },
+      when: (answers: ImportAnswers) => {
+        return !answers.selfAssign;
       },
     },
   ]);
@@ -275,9 +306,10 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       ? existingStateMap[issue.status.toLowerCase()]
       : undefined;
 
-    const assigneeId = !!issue.assigneeId
-      ? existingUserMap[issue.assigneeId.toLowerCase()]
-      : undefined;
+    const assigneeId: string =
+      !!issue.assigneeId && existingUserMap[issue.assigneeId.toLowerCase()]
+        ? existingUserMap[issue.assigneeId.toLowerCase()]
+        : importAnswers.targetAssignee || me;
 
     await linear(
       `
@@ -292,11 +324,11 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
               $assigneeId: String
             ) {
             issueCreate(input: {
+                                teamId: $teamId,
+                                projectId: $projectId,
                                 title: $title,
                                 description: $description,
                                 priority: $priority,
-                                teamId: $teamId,
-                                projectId: $projectId,
                                 labelIds: $labelIds
                                 stateId: $stateId
                                 assigneeId: $assigneeId
