@@ -19,34 +19,44 @@ interface ImportAnswers {
 
 interface QueryResponse {
   teams: {
-    id: string;
-    name: string;
-    key: string;
-    projects: {
+    nodes: {
       id: string;
       name: string;
       key: string;
+      projects: {
+        nodes: {
+          id: string;
+          name: string;
+          key: string;
+        }[];
+      };
     }[];
-  }[];
+  };
   users: {
-    id: string;
-    name: string;
-  }[];
-  user: {
+    nodes: {
+      id: string;
+      name: string;
+    }[];
+  };
+  viewer: {
     id: string;
   };
 }
 
 interface TeamInfoResponse {
   team: {
-    issueLabels: {
-      id: string;
-      name: string;
-    }[];
+    labels: {
+      nodes: {
+        id: string;
+        name: string;
+      }[];
+    };
     states: {
-      id: string;
-      name: string;
-    }[];
+      nodes: {
+        id: string;
+        name: string;
+      }[];
+    };
   };
 }
 
@@ -66,28 +76,36 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
   const linear = linearClient(apiKey);
   const importData = await importer.import();
 
-  const queryInfo = (await linear(`query {
-    teams {
-      id
-      name
-      key
-      projects {
-        id
-        name
+  const queryInfo = (await linear(`
+    query {
+      teams {
+        nodes {
+          id
+          name
+          key
+          projects {
+            nodes {
+              id
+              name
+            }
+          }
+        }
       }
-    }
-    user(id: "me") {
-      id
-    }
-    users {
-      id
-      name
-    }
-  }`)) as QueryResponse;
+      viewer {
+        id
+      }
+      users {
+        nodes {
+          id
+          name
+        }
+      }
+    }  
+  `)) as QueryResponse;
 
-  const teams = queryInfo.teams;
-  const users = queryInfo.users;
-  const me = queryInfo.user.id;
+  const teams = queryInfo.teams.nodes;
+  const users = queryInfo.users.nodes;
+  const me = queryInfo.viewer.id;
 
   // Prompt the user to either get or create a team
   const importAnswers = await inquirer.prompt<ImportAnswers>([
@@ -211,19 +229,23 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
 
   const teamInfo = (await linear(`query {
     team(id: "${teamId}") {
-      issueLabels {
-        id
-        name
+      labels {
+        nodes {
+          id
+          name
+        }
       }
       states {
-        id
-        name
+        nodes {
+          id
+          name
+        }
       }
     }
   }`)) as TeamInfoResponse;
 
-  const issueLabels = teamInfo.team.issueLabels;
-  const workflowStates = teamInfo.team.states;
+  const issueLabels = teamInfo.team.labels.nodes;
+  const workflowStates = teamInfo.team.states.nodes;
 
   const existingLabelMap = {} as { [name: string]: string };
   for (const label of issueLabels) {
