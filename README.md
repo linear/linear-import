@@ -1,5 +1,11 @@
 # linear-import
 
+Install depedencies:
+
+```
+yarn install
+```
+
 Run interactive importer:
 
 ```
