@@ -3,10 +3,12 @@ interface Team {
   name: string;
   key: string;
   projects: {
-    id: string;
-    name: string;
-    key: string;
-  }[];
+    nodes: {
+      id: string;
+      name: string;
+      key: string;
+    }[];
+  };
 }
 
 /**
@@ -20,6 +22,6 @@ interface Team {
  */
 export const getTeamProjects = (teamId: string, teams: Team[]) => {
   const teamIndex = teams.findIndex(team => team.id === teamId);
-  const projects = teamIndex >= 0 ? teams[teamIndex].projects : [];
+  const projects = teamIndex >= 0 ? teams[teamIndex].projects.nodes : [];
   return projects;
 };
