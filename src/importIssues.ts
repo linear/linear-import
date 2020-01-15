@@ -5,6 +5,7 @@ import { Importer, ImportResult, Comment } from './types';
 import linearClient from './client';
 import chalk from 'chalk';
 import * as inquirer from 'inquirer';
+import _ from 'lodash';
 
 interface ImportAnswers {
   newTeam: boolean;
@@ -276,7 +277,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
           }
         `,
         {
-          name: label.name,
+          name: _.truncate(label.name, { length: 20 }),
           description: label.description,
           color: label.color,
           teamId,
