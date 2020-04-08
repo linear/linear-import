@@ -51,6 +51,20 @@ Following fields are supported:
 - `Tags` - Added as a label
 - `Assignee` - Issue assignee
 
+### Pivotal Tracker CSV
+
+Pivotal Tracker projects can be imported into a Linear team from the CSV export file. It only imports `chores`, `features`, and `bugs`.
+
+Following fields are supported:
+
+- `Title` - Issue title
+- `Description` - Converted into markdown and used as issue description
+- `Estimate` - Estimate of story
+- `Labels` - Added as a label
+- `Owned By` - Story owner
+- `URL` - URL of Pivotal Tracker story
+- `Created at` - Preserves the story creation date
+
 ## Todo
 
 - [x] Automatic image uploads
