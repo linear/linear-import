@@ -101,7 +101,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
           name
         }
       }
-    }  
+    }
   `)) as QueryResponse;
 
   const teams = queryInfo.teams.nodes;
@@ -262,7 +262,8 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
   const labelMapping = {} as { [id: string]: string };
   for (const labelId of Object.keys(importData.labels)) {
     const label = importData.labels[labelId];
-    let actualLabelId = existingLabelMap[label.name.toLowerCase()];
+    const labelName = _.truncate(label.name.trim(), { length: 20 });
+    let actualLabelId = existingLabelMap[labelName.toLowerCase()];
 
     if (!actualLabelId) {
       const labelResponse = (await linear(
@@ -277,7 +278,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
           }
         `,
         {
-          name: _.truncate(label.name, { length: 20 }),
+          name: labelName,
           description: label.description,
           color: label.color,
           teamId,
@@ -285,6 +286,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       )) as LabelCreateResponse;
 
       actualLabelId = labelResponse.issueLabelCreate.issueLabel.id;
+      existingLabelMap[labelName.toLowerCase()] = actualLabelId
     }
     labelMapping[labelId] = actualLabelId;
   }
