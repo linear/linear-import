@@ -350,7 +350,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
             ) {
             issueCreate(input: {
                                 teamId: $teamId,
-                                projectIds: [$projectId],
+                                projectId: $projectId,
                                 title: $title,
                                 description: $description,
                                 priority: $priority,
