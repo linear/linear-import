@@ -5,6 +5,7 @@ import { importIssues } from './importIssues';
 import { githubImport } from './importers/github';
 import { jiraCsvImport } from './importers/jiraCsv';
 import { asanaCsvImport } from './importers/asanaCsv';
+import { pivotalCsvImport } from './importers/pivotalCsv';
 
 inquirer.registerPrompt('filePath', require('inquirer-file-path'));
 
@@ -33,6 +34,10 @@ inquirer.registerPrompt('filePath', require('inquirer-file-path'));
             name: 'Asana (CSV export)',
             value: 'asanaCsv',
           },
+          {
+            name: 'Pivotal (CSV export)',
+            value: 'pivotalCsv',
+          },
         ],
       },
     ]);
@@ -48,6 +53,9 @@ inquirer.registerPrompt('filePath', require('inquirer-file-path'));
         break;
       case 'asanaCsv':
         importer = await asanaCsvImport();
+        break;
+      case 'pivotalCsv':
+        importer = await pivotalCsvImport();
         break;
       default:
         console.log(chalk.red(`Invalid importer`));
