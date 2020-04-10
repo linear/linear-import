@@ -37,6 +37,7 @@ interface QueryResponse {
     nodes: {
       id: string;
       name: string;
+      active: boolean;
     }[];
   };
   viewer: {
@@ -99,13 +100,14 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
         nodes {
           id
           name
+          active
         }
       }
     }
   `)) as QueryResponse;
 
   const teams = queryInfo.teams.nodes;
-  const users = queryInfo.users.nodes;
+  const users = queryInfo.users.nodes.filter(user => user.active);
   const me = queryInfo.viewer.id;
 
   // Prompt the user to either get or create a team
@@ -187,8 +189,6 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       name: 'targetAssignee',
       message: 'Assign to user:',
       choices: () => {
-        queryInfo.users;
-
         return users.map((user: { id: string; name: string }) => ({
           name: user.name,
           value: user.id,
@@ -286,7 +286,7 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       )) as LabelCreateResponse;
 
       actualLabelId = labelResponse.issueLabelCreate.issueLabel.id;
-      existingLabelMap[labelName.toLowerCase()] = actualLabelId
+      existingLabelMap[labelName.toLowerCase()] = actualLabelId;
     }
     labelMapping[labelId] = actualLabelId;
   }
