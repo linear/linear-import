@@ -189,10 +189,12 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       name: 'targetAssignee',
       message: 'Assign to user:',
       choices: () => {
-        return users.map((user: { id: string; name: string }) => ({
+        const map = users.map((user: { id: string; name: string }) => ({
           name: user.name,
           value: user.id,
         }));
+        map.push({ name: '[Unassigned]', value: '' });
+        return map;
       },
       when: (answers: ImportAnswers) => {
         return !answers.selfAssign;
@@ -331,10 +333,13 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       ? existingStateMap[issue.status.toLowerCase()]
       : undefined;
 
-    const assigneeId: string =
-      !!issue.assigneeId && existingUserMap[issue.assigneeId.toLowerCase()]
-        ? existingUserMap[issue.assigneeId.toLowerCase()]
-        : importAnswers.targetAssignee || me;
+    const existingAssigneeId: (string | undefined) = !!issue.assigneeId ?
+      existingUserMap[issue.assigneeId.toLowerCase()] : undefined;
+
+    const assigneeId: (string | undefined) = existingAssigneeId ||
+      importAnswers.selfAssign ? me :
+      !!importAnswers.targetAssignee && importAnswers.targetAssignee.length > 0
+        ? importAnswers.targetAssignee : undefined
 
     await linear(
       `
