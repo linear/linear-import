@@ -1,5 +1,6 @@
 import { Variables, ClientError, GraphQLClientRequest } from './types';
 import fetch from 'node-fetch';
+import chalk from 'chalk';
 
 interface ClientOptions {
   url?: string;
@@ -45,6 +46,16 @@ export class GraphQLClient {
     } else {
       const errorResult =
         typeof result === 'string' ? { error: result } : result;
+
+      if (
+        response.status === 200 &&
+        result.errors &&
+        result.errors.length > 0
+      ) {
+        console.log(chalk.red(`Error occurred while importing:\n`));
+        console.log(chalk.blue(JSON.stringify(result, undefined, 2)));
+      }
+
       throw new ClientError(
         { ...errorResult, status: response.status },
         { query, variables }
