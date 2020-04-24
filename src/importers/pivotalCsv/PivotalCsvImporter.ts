@@ -5,25 +5,25 @@ const j2m = require('jira2md');
 type PivotalStoryType = 'epic' | 'feature' | 'bug' | 'chore' | 'release';
 
 interface PivotalIssueType {
-  'Id': string;
-  'Title': string;
-  'Labels': string;
-  'Iteration': string;
+  Id: string;
+  Title: string;
+  Labels: string;
+  Iteration: string;
   'Iteration Start': string;
   'Iteration End': string;
-  'Type': PivotalStoryType;
-  'Estimate': string;
+  Type: PivotalStoryType;
+  Estimate: string;
   'Current State': string;
   'Created at': Date;
   'Accepted at': Date;
-  'Deadline': string;
+  Deadline: string;
   'Requested By': string;
-  'Description': string;
-  'URL': string;
+  Description: string;
+  URL: string;
   'Owned By': string;
-  'Blocker': string;
+  Blocker: string;
   'Blocker Status': string;
-  'Comment': string;
+  Comment: string;
 }
 
 /**
@@ -70,7 +70,7 @@ export class PivotalCsvImporter implements Importer {
       const title = row['Title'];
       if (!title) continue;
 
-      const url = row['URL']
+      const url = row['URL'];
       const mdDesc = j2m.to_markdown(row['Description']);
       const description = url
         ? `${mdDesc}\n\n[View original issue in Pivotal](${url})`
@@ -89,7 +89,7 @@ export class PivotalCsvImporter implements Importer {
 
       const labels = tags.filter(tag => !!tag);
 
-      const createdAt = row['Created at']
+      const createdAt = row['Created at'];
 
       importData.issues.push({
         title,
