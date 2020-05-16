@@ -65,6 +65,17 @@ Following fields are supported:
 - `URL` - URL of Pivotal Tracker story
 - `Created at` - Preserves the story creation date
 
+### Trello JSON
+
+Trello board can be imported into a Linear team from the JSON export file, which can be obtained by going into Board → Show Menu → More → Print and Export → Export as JSON.
+
+Following fields are supported:
+
+- `Name` - Issue title
+- `Description` - Trello markdown formatted description
+- `URL` - URL of Trello card
+- `Labels` - Added as a label
+
 ## Todo
 
 - [x] Automatic image uploads
