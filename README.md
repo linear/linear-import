@@ -1,15 +1,15 @@
 # linear-import
 
-Install depedencies:
+Install the CLI:
 
 ```
-yarn install
+yarn global add linear-import # or npm i -g linear-import
 ```
 
 Run interactive importer:
 
 ```
-yarn cli
+linear-import
 ```
 
 ## Importers
@@ -68,5 +68,6 @@ Following fields are supported:
 ## Todo
 
 - [x] Automatic image uploads
+- [ ] Publish to NPM
 - [ ] Assignees (pick from a list)
 - [ ] Created at (requires API change)
