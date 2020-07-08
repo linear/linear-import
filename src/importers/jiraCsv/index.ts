@@ -9,13 +9,18 @@ const JIRA_URL_REGEX = /^https?:\/\/(\S+).atlassian.net/;
 export const jiraCsvImport = async (): Promise<Importer> => {
   const answers = await inquirer.prompt<JiraImportAnswers>(questions);
   const orgSlug = answers.jiraUrlName.match(JIRA_URL_REGEX)![1];
-  const jiraImporter = new JiraCsvImporter(answers.jiraFilePath, orgSlug);
+  const jiraImporter = new JiraCsvImporter(
+    answers.jiraFilePath,
+    orgSlug,
+    answers.includeIssueKeyInTheTitle
+  );
   return jiraImporter;
 };
 
 interface JiraImportAnswers {
   jiraFilePath: string;
   jiraUrlName: string;
+  includeIssueKeyInTheTitle: boolean;
 }
 
 const questions = [
@@ -24,6 +29,12 @@ const questions = [
     type: 'filePath',
     name: 'jiraFilePath',
     message: 'Select your exported CSV file of Jira issues',
+  },
+  {
+    type: 'confirm',
+    name: 'includeIssueKeyInTheTitle',
+    message: 'Include existing Jira issue key in the title (as prefix)?: ',
+    default: true,
   },
   {
     type: 'input',

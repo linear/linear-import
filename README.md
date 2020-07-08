@@ -37,7 +37,10 @@ Following fields are supported:
 - `Description` - Converted into markdown and used as issue description
 - `Priority` - Issue priority
 - `Issue Type` - Added as a label
+- `Attachemnts` - Added as a link on description
 - (Optional) `Release` - Added as a label
+- (Optional) `Issue key` - Added to the title as a prefix
+- (Optional) `Comments`
 
 ### Asana CSV
 
