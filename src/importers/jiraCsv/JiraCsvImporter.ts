@@ -65,10 +65,15 @@ export class JiraCsvImporter implements Importer {
       const url = this.organizationName
         ? `https://${this.organizationName}.atlassian.net/browse/${row['Issue key']}`
         : undefined;
-      const mdDesc = j2m.to_markdown(row['Description']);
-      const description = url
-        ? `${mdDesc}\n\n[View original issue in Jira](${url})`
-        : mdDesc;
+      const mdDesc = row['Description']
+        ? j2m.to_markdown(row['Description'])
+        : undefined;
+      const description =
+        mdDesc && url
+          ? `${mdDesc}\n\n[View original issue in Jira](${url})`
+          : url
+          ? `[View original issue in Jira](${url})`
+          : undefined;
       const priority = mapPriority(row['Priority']);
       const type = `Type: ${row['Issue Type']}`;
       const release =

@@ -29,7 +29,7 @@ const questions = [
     type: 'input',
     name: 'jiraUrlName',
     message:
-      'Input the URL of your Jira installation (e.g. https://acme.atlassian.net): ',
+      'Input the URL of your Jira installation (e.g. https://acme.atlassian.net):',
     validate: (input: string) => {
       return !!input.match(JIRA_URL_REGEX);
     },
