@@ -29,7 +29,7 @@ const questions = [
     type: 'input',
     name: 'asanaUrlName',
     message:
-      'Input the URL of your Asana board (e.g. https://app.asana.com/0/123456789/list): ',
+      'Input the URL of your Asana board (e.g. https://app.asana.com/0/123456789/list):',
     validate: (input: string) => {
       return !!input.match(ASANA_URL_REGEX);
     },
