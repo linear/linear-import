@@ -35,6 +35,7 @@ Following fields are supported:
 
 - `Summary` - Issue title
 - `Description` - Converted into markdown and used as issue description
+- `URL` - URL of Jira issue
 - `Priority` - Issue priority
 - `Issue Type` - Added as a label
 - (Optional) `Release` - Added as a label
