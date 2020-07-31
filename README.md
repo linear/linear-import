@@ -59,7 +59,6 @@ Following fields are supported:
 
 - `Title` - Issue title
 - `Description` - Converted into markdown and used as issue description
-- `Estimate` - Estimate of story
 - `Labels` - Added as a label
 - `Owned By` - Story owner
 - `URL` - URL of Pivotal Tracker story
