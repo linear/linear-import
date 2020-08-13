@@ -7,6 +7,7 @@ import { jiraCsvImport } from './importers/jiraCsv';
 import { asanaCsvImport } from './importers/asanaCsv';
 import { pivotalCsvImport } from './importers/pivotalCsv';
 import { trelloJsonImport } from './importers/trelloJson';
+import { linearCsvImporter } from './importers/linearCsv';
 
 inquirer.registerPrompt('filePath', require('inquirer-file-path'));
 
@@ -43,6 +44,10 @@ inquirer.registerPrompt('filePath', require('inquirer-file-path'));
             name: 'Trello (JSON export)',
             value: 'trelloJson',
           },
+          {
+            name: 'Linear (CSV export)',
+            value: 'linearCsv',
+          },
         ],
       },
     ]);
@@ -64,6 +69,9 @@ inquirer.registerPrompt('filePath', require('inquirer-file-path'));
         break;
       case 'trelloJson':
         importer = await trelloJsonImport();
+        break;
+      case 'linearCsv':
+        importer = await linearCsvImporter();
         break;
       default:
         console.log(chalk.red(`Invalid importer`));
