@@ -8,14 +8,14 @@ export const trelloJsonImport = async (): Promise<Importer> => {
   const answers = await inquirer.prompt<TrelloImportAnswers>(questions);
   const trelloImporter = new TrelloJsonImporter(
     answers.trelloFilePath,
-    answers.importArchived
+    answers.discardArchived
   );
   return trelloImporter;
 };
 
 interface TrelloImportAnswers {
   trelloFilePath: string;
-  importArchived: boolean;
+  discardArchived: boolean;
 }
 
 const questions = [
@@ -27,8 +27,8 @@ const questions = [
   },
   {
     type: 'confirm',
-    name: 'importArchived',
-    message: 'Would you like to import the archived cards as well?',
+    name: 'discardArchived',
+    message: 'Would you like to discard the archived cards?',
     default: true,
   },
 ];
