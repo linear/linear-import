@@ -76,6 +76,7 @@ Following fields are supported:
 - `Tasks` - Appended to the description
 - `External Tickets` - Appended to the description
 - `State` - Mapped to the most similar Linear status
+- `Type` - Added as a label
 - `Tags` - Added as labels
 - `Owners` - Story owner (only the first is preserved)
 - `URL` - URL of Clubhouse story, also appended to the description

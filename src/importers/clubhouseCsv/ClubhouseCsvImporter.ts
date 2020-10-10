@@ -125,7 +125,8 @@ export class ClubhouseCsvImporter implements Importer {
         .filter(s => s.length > 0)
         .join('\n\n');
 
-      const tags = row.labels;
+      var tags = row.labels;
+      tags.push(row.type);
 
       const assigneeId = row.owners[0];
 
