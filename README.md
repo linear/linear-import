@@ -65,6 +65,22 @@ Following fields are supported:
 - `URL` - URL of Pivotal Tracker story
 - `Created at` - Preserves the story creation date
 
+### Clubhouse CSV
+
+Clubhouse workspaces can be imported into a Linear team from the CSV export file. It only imports `chores`, `features`, and `bugs`.
+
+Following fields are supported:
+
+- `Name` - Issue title
+- `Description` - Clubhouse markdown formatted description
+- `Tasks` - Appended to the description
+- `External Tickets` - Appended to the description
+- `State` - Mapped to the most similar Linear status
+- `Tags` - Added as labels
+- `Owners` - Story owner (only the first is preserved)
+- `URL` - URL of Clubhouse story, also appended to the description
+- `Created at` - Preserves the story creation date
+
 ### Trello JSON
 
 Trello board can be imported into a Linear team from the JSON export file, which can be obtained by going into Board → Show Menu → More → Print and Export → Export as JSON.

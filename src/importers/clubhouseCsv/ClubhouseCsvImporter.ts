@@ -104,6 +104,7 @@ export class ClubhouseCsvImporter implements Importer {
     for (const user of assignees) {
       importData.users[user] = {
         name: user,
+        email: user,
       };
     }
 
@@ -114,9 +115,9 @@ export class ClubhouseCsvImporter implements Importer {
       const url = this.clubhouseBaseURL + '/story/' + row.id;
       const descriptionParts = [
         row.description,
-        row.tasks.map(task => `- ${task}`).join('\n'),
+        row.tasks.join('\n'),
         row.external_tickets
-          .map(url => `- **External Link:** ${url}`)
+          .map(url => `* **External Link:** ${url}`)
           .join('\n'),
         `[View original issue in Clubhouse](${url})`,
       ];
