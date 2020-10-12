@@ -1,6 +1,6 @@
 {
   "name": "@linear/import",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "dist/index.js",
   "module": "dist/linear-github-import.esm.js",
   "typings": "dist/index.d.ts",
