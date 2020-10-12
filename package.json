@@ -1,5 +1,5 @@
 {
-  "name": "linear-github-import",
+  "name": "@linear/import",
   "version": "0.1.0",
   "main": "dist/index.js",
   "module": "dist/linear-github-import.esm.js",
@@ -51,5 +51,22 @@
     "lodash": "^4.17.19",
     "node-fetch": "2.6.1",
     "ts-node": "8.3.0"
-  }
+  },
+  "description": "Import your tasks into Linear",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/linearapp/linear-import.git"
+  },
+  "keywords": [
+    "linear",
+    "import",
+    "task",
+    "issue",
+    "tracking"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/linearapp/linear-import/issues"
+  },
+  "homepage": "https://github.com/linearapp/linear-import#readme"
 }
