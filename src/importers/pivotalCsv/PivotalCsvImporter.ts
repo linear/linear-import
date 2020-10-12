@@ -76,7 +76,7 @@ export class PivotalCsvImporter implements Importer {
         ? `${mdDesc}\n\n[View original issue in Pivotal](${url})`
         : mdDesc;
 
-      const priority = parseInt(row['Estimate']) || undefined;
+      // const priority = parseInt(row['Estimate']) || undefined;
 
       const tags = row['Labels'].split(',');
 
@@ -95,7 +95,6 @@ export class PivotalCsvImporter implements Importer {
         title,
         description,
         status,
-        priority,
         url,
         assigneeId,
         labels,

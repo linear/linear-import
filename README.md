@@ -35,6 +35,7 @@ Following fields are supported:
 
 - `Summary` - Issue title
 - `Description` - Converted into markdown and used as issue description
+- `URL` - URL of Jira issue
 - `Priority` - Issue priority
 - `Issue Type` - Added as a label
 - (Optional) `Release` - Added as a label
@@ -59,11 +60,21 @@ Following fields are supported:
 
 - `Title` - Issue title
 - `Description` - Converted into markdown and used as issue description
-- `Estimate` - Estimate of story
 - `Labels` - Added as a label
 - `Owned By` - Story owner
 - `URL` - URL of Pivotal Tracker story
 - `Created at` - Preserves the story creation date
+
+### Trello JSON
+
+Trello board can be imported into a Linear team from the JSON export file, which can be obtained by going into Board → Show Menu → More → Print and Export → Export as JSON.
+
+Following fields are supported:
+
+- `Name` - Issue title
+- `Description` - Trello markdown formatted description
+- `URL` - URL of Trello card
+- `Labels` - Added as a label
 
 ## Todo
 
