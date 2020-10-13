@@ -79,6 +79,5 @@ Following fields are supported:
 ## Todo
 
 - [x] Automatic image uploads
-- [ ] Publish to NPM
 - [ ] Assignees (pick from a list)
 - [ ] Created at (requires API change)
