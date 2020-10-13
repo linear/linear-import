@@ -2,15 +2,18 @@
   "name": "@linear/import",
   "version": "0.1.0",
   "main": "dist/index.js",
-  "module": "dist/linear-github-import.esm.js",
+  "module": "dist/linear-import.esm.js",
   "typings": "dist/index.d.ts",
   "files": [
     "dist"
   ],
+  "bin": {
+    "linear-import": "bin/linear-import.js"
+  },
   "scripts": {
     "cli": "ts-node --project cli-tsconfig.json src/cli",
     "start": "tsdx watch",
-    "build": "tsdx build",
+    "build": "tsdx build --entry src/cli.ts",
     "test": "tsdx test",
     "postinstall": "yarn build"
   },
