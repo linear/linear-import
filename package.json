@@ -53,7 +53,8 @@
     "jira2md": "^2.0.4",
     "lodash": "^4.17.19",
     "node-fetch": "2.6.1",
-    "ts-node": "8.3.0"
+    "ts-node": "8.3.0",
+    "tsdx": "0.7.2"
   },
   "description": "Import your tasks into Linear",
   "repository": {
