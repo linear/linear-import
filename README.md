@@ -3,7 +3,7 @@
 Install the CLI:
 
 ```
-yarn global add linear-import # or npm i -g linear-import
+npm i -g linear-import
 ```
 
 Run interactive importer:
