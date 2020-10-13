@@ -3,6 +3,12 @@
 Install the CLI:
 
 ```
+yarn global add @linear/import
+```
+
+or
+
+```
 npm i -g @linear/import
 ```
 
