@@ -73,9 +73,14 @@ const colParser = {
  *
  * @param filePath  path to csv file
  * @param workspaceSlug   Clubhouse workspace slug (https://app.clubhouse.io/[THIS])
+ * @param apiToken  A Clubhouse API token (https://app.clubhouse.io/settings/account/api-tokens)
  */
 export class ClubhouseCsvImporter implements Importer {
-  public constructor(private filePath: string, workspaceSlug: string) {
+  public constructor(
+    private filePath: string,
+    workspaceSlug: string,
+    private apiToken: string
+  ) {
     this.clubhouseBaseURL = 'https://app.clubhouse.io/' + workspaceSlug;
   }
 
@@ -97,6 +102,7 @@ export class ClubhouseCsvImporter implements Importer {
       labels: {},
       users: {},
       statuses: {},
+      resourceURLSuffix: '?token=' + this.apiToken,
     };
 
     const assignees = Array.from(new Set(data.map(row => row.owners).flat()));

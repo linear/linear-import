@@ -11,13 +11,16 @@ const IMAGE_TAG_REGEX = /(?:<img.*?src=\"(.*?)\".*?>)/;
  *
  * @param client Linear API client.
  * @param text Markdown content.
+ * @param urlSuffix A suffix to append to each image URL, such as to perform authentication
  * @returns Markdown content with images using the new Linear URLs
  */
 export const replaceImagesInMarkdown = async (
   client: GraphQLClientRequest,
-  text: string
+  text: string,
+  urlSuffix?: string
 ) => {
   let result = text;
+  const effectiveURLSuffix = urlSuffix || '';
 
   // Markdown tags
   result = await replaceAsync(
@@ -27,7 +30,7 @@ export const replaceImagesInMarkdown = async (
       match;
       const title = args[0];
       const url = args[1];
-      let uploadedUrl = await replaceImageUrl(client, url);
+      let uploadedUrl = await replaceImageUrl(client, url + effectiveURLSuffix);
       return `![${title}](${uploadedUrl})`;
     }
   );
@@ -39,7 +42,7 @@ export const replaceImagesInMarkdown = async (
     async (match, ...args: string[]) => {
       match;
       const url = args[0];
-      let uploadedUrl = await replaceImageUrl(client, url);
+      let uploadedUrl = await replaceImageUrl(client, url + effectiveURLSuffix);
       return `![](${uploadedUrl})`;
     }
   );

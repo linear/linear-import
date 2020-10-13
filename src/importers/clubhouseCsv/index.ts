@@ -8,7 +8,8 @@ export const clubhouseCsvImport = async (): Promise<Importer> => {
   const answers = await inquirer.prompt<ClubhouseImportAnswers>(questions);
   const clubhouseImporter = new ClubhouseCsvImporter(
     answers.clubhouseFilePath,
-    answers.clubhouseWorkspaceSlug
+    answers.clubhouseWorkspaceSlug,
+    answers.clubhouseAPIToken
   );
   return clubhouseImporter;
 };
@@ -16,6 +17,7 @@ export const clubhouseCsvImport = async (): Promise<Importer> => {
 interface ClubhouseImportAnswers {
   clubhouseFilePath: string;
   clubhouseWorkspaceSlug: string;
+  clubhouseAPIToken: string;
 }
 
 const questions = [
@@ -29,5 +31,11 @@ const questions = [
     type: 'input',
     name: 'clubhouseWorkspaceSlug',
     message: 'Input the slug of your Clubhouse workspace (e.g. acme):',
+  },
+  {
+    type: 'input',
+    name: 'clubhouseAPIToken',
+    message:
+      'To transfer files from Clubhouse, enter a Clubhouse API token (https://app.clubhouse.io/settings/account/api-tokens):',
   },
 ];
