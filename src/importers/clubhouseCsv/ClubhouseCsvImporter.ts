@@ -121,7 +121,7 @@ export class ClubhouseCsvImporter implements Importer {
       const url = this.clubhouseBaseURL + '/story/' + row.id;
       const descriptionParts = [
         row.description,
-        row.tasks.join('\n'),
+        row.tasks.map(t => `- ${t}`).join('\n'),
         row.external_tickets
           .map(url => `* **External Link:** ${url}`)
           .join('\n'),
