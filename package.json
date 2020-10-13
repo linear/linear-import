@@ -7,7 +7,9 @@
   "files": [
     "dist"
   ],
-  "bin": "bin/linear-import.js",
+  "bin": {
+    "linear-import": "bin/linear-import.js"
+  },
   "scripts": {
     "cli": "ts-node --project cli-tsconfig.json src/cli",
     "start": "tsdx watch",
