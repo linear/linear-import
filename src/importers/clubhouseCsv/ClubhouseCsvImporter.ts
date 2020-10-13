@@ -25,7 +25,7 @@ interface ClubhouseIssueType {
   labels: string[];
   epic_labels: string[];
   tasks: string[];
-  state: string; // TODO: should be enum?
+  state: string;
   epic_id: string;
   epic: string;
   project_id: string;
