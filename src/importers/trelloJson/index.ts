@@ -6,12 +6,16 @@ const BASE_PATH = process.cwd();
 
 export const trelloJsonImport = async (): Promise<Importer> => {
   const answers = await inquirer.prompt<TrelloImportAnswers>(questions);
-  const trelloImporter = new TrelloJsonImporter(answers.trelloFilePath);
+  const trelloImporter = new TrelloJsonImporter(
+    answers.trelloFilePath,
+    answers.discardArchived
+  );
   return trelloImporter;
 };
 
 interface TrelloImportAnswers {
   trelloFilePath: string;
+  discardArchived: boolean;
 }
 
 const questions = [
@@ -20,5 +24,11 @@ const questions = [
     type: 'filePath',
     name: 'trelloFilePath',
     message: 'Select your exported JSON file of Trello cards',
+  },
+  {
+    type: 'confirm',
+    name: 'discardArchived',
+    message: 'Would you like to discard the archived cards?',
+    default: true,
   },
 ];

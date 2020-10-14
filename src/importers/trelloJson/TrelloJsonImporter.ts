@@ -17,6 +17,7 @@ interface TrelloCard {
   name: string;
   desc: string;
   shortUrl: string;
+  closed: boolean;
   labels: {
     id: string;
     idBoard: string;
@@ -26,8 +27,9 @@ interface TrelloCard {
 }
 
 export class TrelloJsonImporter implements Importer {
-  public constructor(filePath: string) {
+  public constructor(filePath: string, discardArchived: boolean) {
     this.filePath = filePath;
+    this.discardArchived = discardArchived;
   }
 
   public get name() {
@@ -55,6 +57,8 @@ export class TrelloJsonImporter implements Importer {
       const description = `${mdDesc}\n\n[View original card in Trello](${url})`;
       const labels = card.labels.map(l => l.id);
 
+      if (this.discardArchived && card.closed) continue;
+
       importData.issues.push({
         title: card.name,
         description,
@@ -79,6 +83,7 @@ export class TrelloJsonImporter implements Importer {
 
   // -- Private interface
   private filePath: string;
+  private discardArchived: boolean;
 }
 
 // Maps Trello colors to Linear branded colors
