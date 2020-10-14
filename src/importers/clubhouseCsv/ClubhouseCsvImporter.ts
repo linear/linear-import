@@ -65,7 +65,8 @@ const colParser = {
   epic_labels: parseStringArrayColumn,
   tasks: parseStringArrayColumn,
   is_archived: parseBooleanColumn,
-  utc_offset: 'omit', // we parse dates using it, so to avoid confusion, leave it out of parsed rows
+  // we parse dates using it, so to avoid confusion, leave it out of parsed rows
+  utc_offset: 'omit',
 };
 
 /**
