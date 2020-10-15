@@ -312,7 +312,11 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
   // Create issues
   for (const issue of importData.issues) {
     const issueDescription = issue.description
-      ? await replaceImagesInMarkdown(linear, issue.description)
+      ? await replaceImagesInMarkdown(
+          linear,
+          issue.description,
+          importData.resourceURLSuffix
+        )
       : undefined;
 
     const description =
@@ -333,13 +337,17 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
       ? existingStateMap[issue.status.toLowerCase()]
       : undefined;
 
-    const existingAssigneeId: (string | undefined) = !!issue.assigneeId ?
-      existingUserMap[issue.assigneeId.toLowerCase()] : undefined;
+    const existingAssigneeId: string | undefined = !!issue.assigneeId
+      ? existingUserMap[issue.assigneeId.toLowerCase()]
+      : undefined;
 
-    const assigneeId: (string | undefined) = existingAssigneeId ||
-      importAnswers.selfAssign ? me :
-      !!importAnswers.targetAssignee && importAnswers.targetAssignee.length > 0
-        ? importAnswers.targetAssignee : undefined
+    const assigneeId: string | undefined =
+      existingAssigneeId || importAnswers.selfAssign
+        ? me
+        : !!importAnswers.targetAssignee &&
+          importAnswers.targetAssignee.length > 0
+        ? importAnswers.targetAssignee
+        : undefined;
 
     await linear(
       `
@@ -401,7 +409,11 @@ const buildComments = async (
       ? comment.createdAt.toISOString().split('T')[0]
       : undefined;
 
-    const body = await replaceImagesInMarkdown(client, comment.body || '');
+    const body = await replaceImagesInMarkdown(
+      client,
+      comment.body || '',
+      importData.resourceURLSuffix
+    );
     newComments.push(`**${user.name}**${' ' + date}\n\n${body}\n`);
   }
   return `${description}\n\n---\n\n${newComments.join('\n\n')}`;

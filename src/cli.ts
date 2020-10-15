@@ -6,6 +6,7 @@ import { githubImport } from './importers/github';
 import { jiraCsvImport } from './importers/jiraCsv';
 import { asanaCsvImport } from './importers/asanaCsv';
 import { pivotalCsvImport } from './importers/pivotalCsv';
+import { clubhouseCsvImport } from './importers/clubhouseCsv';
 import { trelloJsonImport } from './importers/trelloJson';
 
 inquirer.registerPrompt('filePath', require('inquirer-file-path'));
@@ -40,6 +41,10 @@ inquirer.registerPrompt('filePath', require('inquirer-file-path'));
             value: 'pivotalCsv',
           },
           {
+            name: 'Clubhouse (CSV export)',
+            value: 'clubhouseCsv',
+          },
+          {
             name: 'Trello (JSON export)',
             value: 'trelloJson',
           },
@@ -61,6 +66,9 @@ inquirer.registerPrompt('filePath', require('inquirer-file-path'));
         break;
       case 'pivotalCsv':
         importer = await pivotalCsvImport();
+        break;
+      case 'clubhouseCsv':
+        importer = await clubhouseCsvImport();
         break;
       case 'trelloJson':
         importer = await trelloJsonImport();

@@ -61,6 +61,8 @@ export interface ImportResult {
       description?: string;
     };
   };
+  /// A suffix to be appended to each resource URL (e.g. to authenticate requests)
+  resourceURLSuffix?: string;
 }
 
 /**
