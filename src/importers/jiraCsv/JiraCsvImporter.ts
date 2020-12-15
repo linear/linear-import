@@ -24,9 +24,10 @@ interface JiraIssueType {
  * @param apiKey GitHub api key for authentication
  */
 export class JiraCsvImporter implements Importer {
-  public constructor(filePath: string, orgSlug: string) {
+  public constructor(filePath: string, orgSlug: string, customUrl: string) {
     this.filePath = filePath;
     this.organizationName = orgSlug;
+    this.customJiraUrl = customUrl;
   }
 
   public get name() {
@@ -64,7 +65,7 @@ export class JiraCsvImporter implements Importer {
     for (const row of data) {
       const url = this.organizationName
         ? `https://${this.organizationName}.atlassian.net/browse/${row['Issue key']}`
-        : undefined;
+        : `${this.customJiraUrl}${row['Issue key']}`;
       const mdDesc = row['Description']
         ? j2m.to_markdown(row['Description'])
         : undefined;
@@ -116,6 +117,7 @@ export class JiraCsvImporter implements Importer {
   // -- Private interface
 
   private filePath: string;
+  private customJiraUrl: string;
   private organizationName?: string;
 }
 
