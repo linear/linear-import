@@ -22,6 +22,7 @@ export const jiraCsvImport = async (): Promise<Importer> => {
 
 interface JiraImportAnswers {
   jiraFilePath: string;
+  isCloud: boolean;
   customJiraUrl: string;
   jiraUrlName: string;
 }
@@ -34,18 +35,34 @@ const questions = [
     message: 'Select your exported CSV file of Jira issues',
   },
   {
+    type: 'confirm',
+    name: 'isCloud',
+    message:
+      'Is your Jira installation on Jira Cloud (url similar to https://acme.atlassian.net)?',
+    default: true,
+  },
+  {
     type: 'input',
     name: 'customJiraUrl',
     message:
-      'Input the URL of your Jira installation if it is on-prem (e.g. https://jira.mydomain.com), or leave blank if not:',
+      'Input the URL of your on-prem Jira installation (e.g. https://jira.mydomain.com):',
+    when: (answers: JiraImportAnswers) => {
+      return !answers.isCloud;
+    },
+    validate: (input: string) => {
+      return input !== '';
+    },
   },
   {
     type: 'input',
     name: 'jiraUrlName',
     message:
-      'Input the URL of your Jira installation (e.g. https://acme.atlassian.net):',
+      'Input the URL of your Jira Cloud installation (e.g. https://acme.atlassian.net):',
+    when: (answers: JiraImportAnswers) => {
+      return answers.isCloud;
+    },
     validate: (input: string) => {
-      return input === '' || !!input.match(JIRA_URL_REGEX);
+      return !!input.match(JIRA_URL_REGEX);
     },
   },
 ];
