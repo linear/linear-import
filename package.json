@@ -52,7 +52,7 @@
     "inquirer-file-path": "1.0.1",
     "jira2md": "^2.0.4",
     "lodash": "^4.17.19",
-    "node-fetch": "2.6.1",
+    "node-fetch": "2.6.7",
     "ts-node": "8.3.0",
     "tsdx": "0.7.2"
   },
