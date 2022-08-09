@@ -388,9 +388,9 @@ export const importIssues = async (apiKey: string, importer: Importer) => {
     );
   }
 
-  console.error(
+  console.info(
     chalk.green(
-      `${importer.name} issues imported to your backlog: https://linear.app/team/${teamKey}/backlog`
+      `${importer.name} issues imported to your team: https://linear.app/team/${teamKey}/all`
     )
   );
 };
